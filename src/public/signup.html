@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up | Rumora</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+    <style>
+        /* Same styles as signin.html, with minor modifications */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        :root {
+            --primary-purple: #6a0dad;
+            --dark-purple: #4a0072;
+            --light-purple: #9d4edd;
+            --magenta: #c77dff;
+            --lavender: #e0aaff;
+            --gold: #ffd700;
+            --dark-bg: #0f0b1f;
+            --card-bg: rgba(26, 15, 51, 0.95);
+            --text-light: #f5f5f5;
+            --text-gray: #cccccc;
+            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 5% 10%, rgba(106, 13, 173, 0.2) 0%, transparent 25%),
+                radial-gradient(circle at 95% 90%, rgba(157, 78, 221, 0.15) 0%, transparent 25%),
+                radial-gradient(circle at 50% 50%, rgba(106, 13, 173, 0.05) 0%, transparent 50%);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .auth-header {
+            padding: 25px 0;
+            background: rgba(15, 11, 31, 0.95);
+            border-bottom: 1px solid rgba(157, 78, 221, 0.1);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            font-size: 2.8rem;
+            color: var(--magenta);
+            text-shadow: 0 0 20px rgba(199, 125, 255, 0.8);
+        }
+
+        .logo-text {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--light-purple), var(--magenta), var(--lavender));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 1px;
+        }
+
+        .back-button {
+            background: transparent;
+            color: var(--text-light);
+            border: 2px solid rgba(157, 78, 221, 0.3);
+            padding: 10px 25px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .back-button:hover {
+            background: rgba(157, 78, 221, 0.1);
+            border-color: var(--magenta);
+            transform: translateY(-2px);
+        }
+
+        /* Main Auth Container */
+        .auth-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .auth-card {
+            background: var(--card-bg);
+            border-radius: 25px;
+            padding: 50px;
+            width: 100%;
+            max-width: 500px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(157, 78, 221, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .auth-header-text {
+            margin-bottom: 40px;
+        }
+
+        .auth-header-text h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, var(--lavender), var(--magenta));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 800;
+            margin-bottom: 15px;
+        }
+
+        .auth-header-text p {
+            color: var(--text-gray);
+            font-size: 1.1rem;
+        }
+
+        /* Special Offer Banner */
+        .offer-banner {
+            background: linear-gradient(135deg, rgba(157, 78, 221, 0.2), rgba(106, 13, 173, 0.2));
+            border: 1px solid rgba(157, 78, 221, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 25px 0;
+            text-align: left;
+        }
+
+        .offer-banner h3 {
+            color: var(--gold);
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .offer-banner ul {
+            list-style: none;
+            margin: 15px 0 0 0;
+            padding-left: 10px;
+        }
+
+        .offer-banner li {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .offer-banner li i {
+            color: var(--magenta);
+        }
+
+        /* Clerk Container */
+        .clerk-container {
+            margin: 30px 0;
+        }
+
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 0;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(157, 78, 221, 0.3);
+            border-top-color: var(--magenta);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Social Auth */
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            margin: 30px 0;
+            color: var(--text-gray);
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .auth-divider span {
+            padding: 0 15px;
+            font-size: 0.9rem;
+        }
+
+        .social-auth {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .social-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 15px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-light);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .social-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .social-button.google {
+            border-color: #DB4437;
+        }
+
+        .social-button.discord {
+            border-color: #5865F2;
+        }
+
+        /* Auth Navigation */
+        .auth-navigation {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.95rem;
+        }
+
+        .auth-navigation a {
+            color: var(--magenta);
+            text-decoration: none;
+            font-weight: 600;
+            margin: 0 10px;
+        }
+
+        .auth-navigation a:hover {
+            color: var(--lavender);
+            text-decoration: underline;
+        }
+
+        /* Footer */
+        .auth-footer {
+            text-align: center;
+            padding: 30px 0;
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .auth-footer a {
+            color: var(--magenta);
+            text-decoration: none;
+        }
+
+        .auth-footer a:hover {
+            color: var(--lavender);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .auth-card {
+                padding: 30px;
+            }
+            
+            .auth-header-text h1 {
+                font-size: 2rem;
+            }
+            
+            .header-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .auth-card {
+                padding: 25px 20px;
+            }
+            
+            .auth-header-text h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="auth-header">
+        <div class="container header-container">
+            <a href="/testing" class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-hat-wizard"></i>
+                </div>
+                <div class="logo-text">Rumora</div>
+            </a>
+            <a href="/testing" class="back-button">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Auth Container -->
+    <main class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header-text">
+                <h1>Join Rumora</h1>
+                <p>Create your account to unlock magical experiences</p>
+            </div>
+
+            <!-- Special Offer -->
+            <div class="offer-banner">
+                <h3><i class="fas fa-gift"></i> New Member Bonus</h3>
+                <p>Sign up today and get:</p>
+                <ul>
+                    <li><i class="fas fa-check"></i> <strong>Free Magical Cape</strong> - Exclusive design</li>
+                    <li><i class="fas fa-check"></i> <strong>7-Day Premium Trial</strong> - All Gold Plan features</li>
+                    <li><i class="fas fa-check"></i> <strong>Early Access</strong> - To new features</li>
+                </ul>
+            </div>
+
+            <!-- Clerk Sign Up Component -->
+            <div id="clerk-signup" class="clerk-container">
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p>Loading magical sign up...</p>
+                </div>
+            </div>
+
+            <!-- Alternative Options -->
+            <div class="auth-divider">
+                <span>Or sign up with</span>
+            </div>
+
+            <div class="social-auth">
+                <button class="social-button google" id="googleSignUp">
+                    <i class="fab fa-google"></i> Sign up with Google
+                </button>
+                <button class="social-button discord" id="discordSignUp">
+                    <i class="fab fa-discord"></i> Sign up with Discord
+                </button>
+            </div>
+
+            <!-- Navigation -->
+            <div class="auth-navigation">
+                Already have an account? <a href="/testing/signin">Sign in here</a><br>
+                <a href="/testing">Return to Rumora</a> | 
+                <a href="/testing/tos">Read Terms</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="auth-footer">
+        <div class="container">
+            <p>By creating an account, you agree to our <a href="/testing/tos">Terms of Service</a> and <a href="/testing/privacy">Privacy Policy</a></p>
+            <p>&copy; 2023 Rumora. All magical rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Clerk Initialization -->
+    <script>
+        // Initialize Clerk
+        const clerkPublishableKey = '{{CLERK_PUBLISHABLE_KEY}}' || 'pk_test_YOUR_PUBLISHABLE_KEY';
+        
+        const Clerk = window.Clerk;
+        
+        async function loadClerk() {
+            try {
+                await Clerk.load({
+                    publishableKey: clerkPublishableKey,
+                    appearance: {
+                        variables: {
+                            colorPrimary: '#9d4edd',
+                            colorText: '#f5f5f5',
+                            colorInputText: '#f5f5f5',
+                            colorBackground: 'transparent',
+                            colorInputBackground: 'rgba(255, 255, 255, 0.05)',
+                            borderRadius: '12px'
+                        },
+                        elements: {
+                            formButtonPrimary: {
+                                backgroundColor: '#9d4edd',
+                                backgroundImage: 'linear-gradient(90deg, #6a0dad, #9d4edd)',
+                                border: 'none',
+                                borderRadius: '50px',
+                                fontWeight: '600',
+                                boxShadow: '0 5px 20px rgba(106, 13, 173, 0.4)',
+                                transition: 'all 0.3s ease'
+                            },
+                            formButtonPrimary__hover: {
+                                transform: 'translateY(-3px)',
+                                boxShadow: '0 10px 25px rgba(106, 13, 173, 0.6)'
+                            },
+                            card: {
+                                backgroundColor: 'rgba(26, 15, 51, 0.95)',
+                                border: '1px solid rgba(157, 78, 221, 0.2)',
+                                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
+                                borderRadius: '25px'
+                            },
+                            headerTitle: {
+                                background: 'linear-gradient(90deg, #e0aaff, #c77dff)',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                fontSize: '2.5rem',
+                                fontWeight: '800'
+                            },
+                            headerSubtitle: {
+                                color: '#cccccc'
+                            },
+                            formFieldInput: {
+                                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                border: '1px solid rgba(157, 78, 221, 0.3)',
+                                borderRadius: '12px',
+                                color: '#f5f5f5',
+                                transition: 'all 0.3s ease'
+                            },
+                            formFieldInput__focus: {
+                                borderColor: '#c77dff',
+                                boxShadow: '0 0 0 3px rgba(157, 78, 221, 0.2)'
+                            },
+                            footerActionLink: {
+                                color: '#c77dff',
+                                fontWeight: '600'
+                            },
+                            footerActionLink__hover: {
+                                color: '#e0aaff'
+                            }
+                        }
+                    }
+                });
+
+                // Mount the sign-up component
+                const signUpElement = document.getElementById('clerk-signup');
+                if (signUpElement) {
+                    signUpElement.innerHTML = '';
+                    Clerk.mountSignUp(signUpElement, {
+                        appearance: {
+                            elements: {
+                                rootBox: {
+                                    width: '100%',
+                                    margin: '0 auto'
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Handle successful sign up
+                Clerk.addListener(({ user }) => {
+                    if (user) {
+                        console.log('User signed up:', user);
+                        // Redirect to dashboard
+                        window.location.href = '/testing/dashboard';
+                    }
+                });
+
+                // Social sign up handlers
+                document.getElementById('googleSignUp')?.addEventListener('click', () => {
+                    Clerk.openSignUp({
+                        strategy: 'oauth_google'
+                    });
+                });
+
+                document.getElementById('discordSignUp')?.addEventListener('click', () => {
+                    Clerk.openSignUp({
+                        strategy: 'oauth_discord'
+                    });
+                });
+
+            } catch (error) {
+                console.error('Error loading Clerk:', error);
+                document.getElementById('clerk-signup').innerHTML = `
+                    <div style="text-align: center; color: #ef4444; padding: 20px;">
+                        <p>Unable to load sign up. Please try again later.</p>
+                        <button onclick="window.location.reload()" style="
+                            background: linear-gradient(90deg, #6a0dad, #9d4edd);
+                            color: white;
+                            border: none;
+                            padding: 10px 20px;
+                            border-radius: 50px;
+                            margin-top: 10px;
+                            cursor: pointer;
+                        ">Retry</button>
+                    </div>
+                `;
+            }
+        }
+
+        // Load Clerk when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadClerk);
+        } else {
+            loadClerk();
+        }
+    </script>
+</body>
+</html>
