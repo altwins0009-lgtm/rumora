@@ -54,6 +54,25 @@ app.get('/testing/privacy', (req, res) => {
     res.send(html);
 });
 
+// Clerk webhook handler
+app.post('/api/auth/webhook', express.raw({ type: 'application/json' }), (req, res) => {
+    const svixId = req.headers['svix-id'];
+    const svixTimestamp = req.headers['svix-timestamp'];
+    const svixSignature = req.headers['svix-signature'];
+    
+    console.log('📥 Clerk webhook received:', svixId);
+    
+    // In production, verify the signature using Clerk SDK
+    // For now, just acknowledge receipt
+    res.json({ received: true });
+});
+
+// Clerk auth callback handler
+app.get('/api/auth/callback', (req, res) => {
+    console.log('🔐 Clerk auth callback received');
+    res.redirect('/testing/dashboard');
+});
+
 app.get('/testing/signin', (req, res) => {
     const html = loadHtmlFile('signin.html');
     const clerkKey = process.env.CLERK_PUBLISHABLE_KEY || 'pk_test_dummy_key';
