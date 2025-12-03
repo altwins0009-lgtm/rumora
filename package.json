@@ -10,14 +10,15 @@
   "dependencies": {
     "express": "^4.18.2",
     "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "@clerk/clerk-sdk-node": "^4.13.0",
-    "@clerk/clerk-express": "^1.0.2"
+    "dotenv": "^16.3.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
   },
-  "keywords": ["rumora", "magical", "vip", "website", "clerk"],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["rumora", "magical", "vip", "website"],
   "author": "Your Name",
   "license": "MIT"
 }
