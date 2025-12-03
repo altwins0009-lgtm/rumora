@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Rumora</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        :root {
+            --primary-purple: #6a0dad;
+            --dark-purple: #4a0072;
+            --light-purple: #9d4edd;
+            --magenta: #c77dff;
+            --lavender: #e0aaff;
+            --gold: #ffd700;
+            --silver: #c0c0c0;
+            --platinum: #e5e4e2;
+            --dark-bg: #0f0b1f;
+            --card-bg: rgba(26, 15, 51, 0.85);
+            --text-light: #f5f5f5;
+            --text-gray: #cccccc;
+            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 5% 10%, rgba(106, 13, 173, 0.2) 0%, transparent 25%),
+                radial-gradient(circle at 95% 90%, rgba(157, 78, 221, 0.15) 0%, transparent 25%),
+                radial-gradient(circle at 50% 50%, rgba(106, 13, 173, 0.05) 0%, transparent 50%);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            padding: 25px 0;
+            background: rgba(15, 11, 31, 0.95);
+            border-bottom: 1px solid rgba(157, 78, 221, 0.1);
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            font-size: 2.8rem;
+            color: var(--magenta);
+            text-shadow: 0 0 20px rgba(199, 125, 255, 0.8);
+        }
+
+        .logo-text {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--light-purple), var(--magenta), var(--lavender));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 1px;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-purple), var(--light-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .sign-out-btn {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 2px solid rgba(239, 68, 68, 0.3);
+            padding: 10px 25px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sign-out-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Dashboard Main */
+        .dashboard-container {
+            padding: 60px 0;
+        }
+
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .welcome-section h1 {
+            font-size: 3rem;
+            background: linear-gradient(90deg, var(--lavender), var(--magenta));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+
+        .welcome-section p {
+            font-size: 1.2rem;
+            color: var(--text-gray);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            border: 1px solid rgba(157, 78, 221, 0.2);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            border-color: var(--magenta);
+            transform: translateY(-5px);
+        }
+
+        .stat-icon {
+            font-size: 3rem;
+            color: var(--magenta);
+            margin-bottom: 20px;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--lavender);
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: var(--text-gray);
+            font-size: 1.1rem;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .action-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(157, 78, 221, 0.2);
+            transition: var(--transition);
+        }
+
+        .action-card:hover {
+            border-color: var(--magenta);
+            transform: translateY(-5px);
+        }
+
+        .action-card h3 {
+            font-size: 1.5rem;
+            color: var(--lavender);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .action-btn {
+            display: inline-block;
+            background: linear-gradient(90deg, var(--primary-purple), var(--light-purple));
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 15px;
+            transition: var(--transition);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(106, 13, 173, 0.6);
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(15, 11, 31, 0.95);
+            padding: 60px 0 30px;
+            border-top: 1px solid rgba(157, 78, 221, 0.2);
+            margin-top: 80px;
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-gray);
+            font-size: 0.95rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .welcome-section h1 {
+                font-size: 2.2rem;
+            }
+            
+            .stats-grid,
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container header-container">
+            <a href="/testing" class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-hat-wizard"></i>
+                </div>
+                <div class="logo-text">Rumora</div>
+            </a>
+            <div class="user-menu">
+                <div class="user-avatar" id="userAvatar">
+                    {{USER_NAME | first | uppercase}}
+                </div>
+                <button class="sign-out-btn" onclick="signOut()">
+                    <i class="fas fa-sign-out-alt"></i> Sign Out
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Dashboard Main -->
+    <main class="dashboard-container">
+        <div class="container">
+            <!-- Welcome Section -->
+            <div class="welcome-section">
+                <h1>Welcome, {{USER_NAME}}!</h1>
+                <p>Your magical dashboard is ready. Manage your account, claim capes, and access premium features.</p>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <div class="stat-value">{{USER_PLAN}}</div>
+                    <div class="stat-label">Current Plan</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-rainbow"></i>
+                    </div>
+                    <div class="stat-value">{{CAPE_COUNT}}</div>
+                    <div class="stat-label">Magical Capes</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-star"></i>
+                    </div>
+                    <div class="stat-value">{{JOIN_DATE}}</div>
+                    <div class="stat-label">Member Since</div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <div class="action-card">
+                    <h3><i class="fas fa-gift"></i> Claim Free Cape</h3>
+                    <p>Get your exclusive magical cape. New designs added weekly!</p>
+                    <a href="#" class="action-btn">Claim Now</a>
+                </div>
+                
+                <div class="action-card">
+                    <h3><i class="fas fa-robot"></i> Setup Ranking Bot</h3>
+                    <p>Configure your Roblox ranking bot with our easy wizard.</p>
+                    <a href="#" class="action-btn">Configure</a>
+                </div>
+                
+                <div class="action-card">
+                    <h3><i class="fas fa-chart-line"></i> Upgrade Plan</h3>
+                    <p>Unlock more features with Gold or Platinum plans.</p>
+                    <a href="/testing" class="action-btn">View Plans</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="copyright">
+                <p>&copy; 2023 Rumora. All magical rights reserved.</p>
+                <p>User ID: {{USER_ID}} | Email: {{USER_EMAIL}}</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Set user avatar initial
+        document.addEventListener('DOMContentLoaded', function() {
+            const userName = '{{USER_NAME}}' || 'User';
+            const avatar = document.getElementById('userAvatar');
+            if (avatar) {
+                avatar.textContent = userName.charAt(0).toUpperCase();
+            }
+            
+            // Update copyright year
+            document.querySelectorAll('.copyright p').forEach(p => {
+                p.innerHTML = p.innerHTML.replace('2023', new Date().getFullYear());
+            });
+        });
+
+        // Sign out function
+        function signOut() {
+            if (confirm('Are you sure you want to sign out?')) {
+                // Clear any local session data
+                localStorage.removeItem('rumora_session');
+                sessionStorage.removeItem('rumora_session');
+                
+                // Redirect to home
+                window.location.href = '/testing';
+            }
+        }
+
+        // Check for Clerk (if available)
+        if (typeof Clerk !== 'undefined') {
+            console.log('Clerk is available');
+            // You can add Clerk-specific logic here
+        }
+    </script>
+</body>
+</html>
