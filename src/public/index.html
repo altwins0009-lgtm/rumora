@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rumora | Magical VIP Experience</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        :root {
+            --primary-purple: #6a0dad;
+            --dark-purple: #4a0072;
+            --light-purple: #9d4edd;
+            --magenta: #c77dff;
+            --lavender: #e0aaff;
+            --gold: #ffd700;
+            --silver: #c0c0c0;
+            --platinum: #e5e4e2;
+            --dark-bg: #0f0b1f;
+            --card-bg: rgba(26, 15, 51, 0.85);
+            --text-light: #f5f5f5;
+            --text-gray: #cccccc;
+            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 5% 10%, rgba(106, 13, 173, 0.2) 0%, transparent 25%),
+                radial-gradient(circle at 95% 90%, rgba(157, 78, 221, 0.15) 0%, transparent 25%),
+                radial-gradient(circle at 50% 50%, rgba(106, 13, 173, 0.05) 0%, transparent 50%);
+            min-height: 100vh;
+            font-weight: 400;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header Styles */
+        header {
+            padding: 25px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            background: rgba(15, 11, 31, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(157, 78, 221, 0.1);
+            transition: var(--transition);
+        }
+
+        header.scrolled {
+            padding: 15px 0;
+            box-shadow: 0 5px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            font-size: 2.8rem;
+            color: var(--magenta);
+            text-shadow: 0 0 20px rgba(199, 125, 255, 0.8);
+            animation: pulse 3s infinite;
+            transition: var(--transition);
+        }
+
+        .logo:hover .logo-icon {
+            transform: rotate(15deg);
+        }
+
+        .logo-text {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--light-purple), var(--magenta), var(--lavender));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 1px;
+            text-shadow: 0 5px 15px rgba(106, 13, 173, 0.3);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 35px;
+        }
+
+        nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-size: 1.05rem;
+            font-weight: 500;
+            transition: var(--transition);
+            padding: 8px 0;
+            position: relative;
+            letter-spacing: 0.5px;
+        }
+
+        nav a:hover {
+            color: var(--lavender);
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--light-purple), var(--magenta));
+            transition: width 0.4s ease;
+        }
+
+        nav a:hover::after {
+            width: 100%;
+        }
+
+        .cta-button {
+            background: linear-gradient(90deg, var(--primary-purple), var(--light-purple));
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 5px 20px rgba(106, 13, 173, 0.4);
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.7s ease;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(106, 13, 173, 0.6);
+        }
+
+        .cta-button:hover::before {
+            left: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 180px 0 120px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 30% 30%, rgba(106, 13, 173, 0.25) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 70%, rgba(157, 78, 221, 0.2) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        .hero h1 {
+            font-size: 3.8rem;
+            margin-bottom: 25px;
+            background: linear-gradient(90deg, var(--lavender), var(--magenta), var(--lavender));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            line-height: 1.2;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-shadow: 0 10px 30px rgba(106, 13, 173, 0.3);
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            max-width: 700px;
+            margin: 0 auto 40px;
+            color: var(--text-gray);
+            line-height: 1.7;
+            font-weight: 400;
+        }
+
+        .magical-offer {
+            background: linear-gradient(135deg, rgba(157, 78, 221, 0.15), rgba(106, 13, 173, 0.1));
+            border: 1px solid rgba(157, 78, 221, 0.3);
+            border-radius: 20px;
+            padding: 35px;
+            max-width: 850px;
+            margin: 0 auto 60px;
+            backdrop-filter: blur(15px);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .magical-offer::before {
+            content: '';
+            position: absolute;
+            top: -100%;
+            left: -100%;
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle, rgba(199, 125, 255, 0.1) 0%, transparent 70%);
+            z-index: -1;
+            animation: rotate 20s linear infinite;
+        }
+
+        .magical-offer h2 {
+            color: var(--gold);
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            font-weight: 700;
+        }
+
+        .magical-offer p {
+            font-size: 1.3rem;
+            margin-bottom: 0;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        /* Plans Section */
+        .plans-section {
+            padding: 100px 0;
+            position: relative;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.8rem;
+            margin-bottom: 80px;
+            color: var(--text-light);
+            position: relative;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary-purple), var(--light-purple));
+            border-radius: 3px;
+        }
+
+        .plans-container {
+            display: flex;
+            justify-content: center;
+            gap: 35px;
+            flex-wrap: wrap;
+        }
+
+        .plan-card {
+            background: var(--card-bg);
+            border-radius: 25px;
+            padding: 45px 35px;
+            width: 350px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(157, 78, 221, 0.2);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .plan-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(157, 78, 221, 0.05), transparent);
+            z-index: -1;
+        }
+
+        .plan-card:hover {
+            transform: translateY(-20px);
+            border-color: var(--magenta);
+            box-shadow: 0 20px 40px rgba(106, 13, 173, 0.4);
+        }
+
+        .plan-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            z-index: 2;
+        }
+
+        .plan-card.silver::before {
+            background: linear-gradient(90deg, #c0c0c0, #a8a8a8, #c0c0c0);
+        }
+
+        .plan-card.gold::before {
+            background: linear-gradient(90deg, #ffd700, #daa520, #ffd700);
+        }
+
+        .plan-card.platinum::before {
+            background: linear-gradient(90deg, #e5e4e2, #b8b8b8, #e5e4e2);
+        }
+
+        .plan-badge {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            background: linear-gradient(135deg, rgba(199, 125, 255, 0.2), rgba(106, 13, 173, 0.2));
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--gold);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .plan-icon {
+            font-size: 3rem;
+            margin-bottom: 25px;
+            transition: var(--transition);
+        }
+
+        .plan-card:hover .plan-icon {
+            transform: scale(1.1);
+        }
+
+        .plan-card.silver .plan-icon {
+            color: var(--silver);
+        }
+
+        .plan-card.gold .plan-icon {
+            color: var(--gold);
+        }
+
+        .plan-card.platinum .plan-icon {
+            color: var(--platinum);
+        }
+
+        .plan-title {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .plan-price {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .plan-price span {
+            font-size: 1.2rem;
+            color: var(--text-gray);
+            font-weight: 500;
+            margin-top: 10px;
+            margin-left: 5px;
+        }
+
+        .plan-card.silver .plan-price {
+            color: var(--silver);
+        }
+
+        .plan-card.gold .plan-price {
+            color: var(--gold);
+        }
+
+        .plan-card.platinum .plan-price {
+            color: var(--platinum);
+        }
+
+        .plan-features {
+            list-style: none;
+            margin-bottom: 40px;
+        }
+
+        .plan-features li {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+        }
+
+        .plan-features li i {
+            color: var(--light-purple);
+            font-size: 1.1rem;
+        }
+
+        /* Services Section */
+        .services-section {
+            padding: 100px 0;
+            position: relative;
+        }
+
+        .services-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+        }
+
+        .service-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 40px 35px;
+            border: 1px solid rgba(157, 78, 221, 0.2);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(106, 13, 173, 0.05), transparent);
+            z-index: -1;
+        }
+
+        .service-card:hover {
+            border-color: var(--magenta);
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(106, 13, 173, 0.3);
+        }
+
+        .service-icon {
+            font-size: 3rem;
+            color: var(--magenta);
+            margin-bottom: 25px;
+            transition: var(--transition);
+        }
+
+        .service-card:hover .service-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .service-title {
+            font-size: 1.7rem;
+            margin-bottom: 20px;
+            color: var(--lavender);
+            font-weight: 700;
+        }
+
+        .service-card p {
+            color: var(--text-gray);
+            line-height: 1.7;
+            font-weight: 400;
+        }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(to bottom, rgba(15, 11, 31, 0.95), rgba(15, 11, 31, 1));
+            padding: 80px 0 30px;
+            margin-top: 80px;
+            border-top: 1px solid rgba(157, 78, 221, 0.2);
+            position: relative;
+        }
+
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--magenta), transparent);
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 50px;
+            margin-bottom: 50px;
+        }
+
+        .footer-column {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .footer-column h3 {
+            font-size: 1.4rem;
+            margin-bottom: 30px;
+            color: var(--lavender);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .footer-column p {
+            color: var(--text-gray);
+            line-height: 1.7;
+            margin-bottom: 25px;
+            font-weight: 400;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 18px;
+        }
+
+        .footer-links a {
+            color: var(--text-gray);
+            text-decoration: none;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+
+        .footer-links a:hover {
+            color: var(--lavender);
+            transform: translateX(5px);
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-gray);
+            font-size: 0.95rem;
+            font-weight: 400;
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0% { text-shadow: 0 0 20px rgba(199, 125, 255, 0.8); }
+            50% { text-shadow: 0 0 30px rgba(199, 125, 255, 1); }
+            100% { text-shadow: 0 0 20px rgba(199, 125, 255, 0.8); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0); }
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .floating {
+            animation: float 5s ease-in-out infinite;
+        }
+
+        /* Responsive */
+        @media (max-width: 1100px) {
+            .plans-container {
+                gap: 25px;
+            }
+            
+            .plan-card {
+                width: 100%;
+                max-width: 330px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .hero h1 {
+                font-size: 3rem;
+            }
+            
+            .plans-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .plan-card {
+                width: 100%;
+                max-width: 450px;
+            }
+            
+            .services-container {
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 20px 0;
+                position: relative;
+            }
+            
+            .header-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 20px;
+            }
+            
+            .hero {
+                padding: 100px 0 80px;
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+            }
+            
+            .magical-offer {
+                padding: 25px;
+            }
+            
+            .magical-offer h2 {
+                font-size: 1.8rem;
+            }
+            
+            .section-title {
+                font-size: 2.3rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .magical-offer h2 {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .plan-card {
+                padding: 35px 25px;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                gap: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header id="header">
+        <div class="container header-container">
+            <a href="#" class="logo">
+                <div class="logo-icon floating">
+                    <i class="fas fa-hat-wizard"></i>
+                </div>
+                <div class="logo-text">Rumora</div>
+            </a>
+            <nav>
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#services">Services</a></li>
+                    <li><a href="#plans">Premium Plans</a></li>
+                    <li><a href="#about">About</a></li>
+                </ul>
+            </nav>
+            <button class="cta-button">Join Now</button>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="container">
+            <h1>Experience The Magic Of Rumora</h1>
+            <p>Unlock exclusive VIP features, premium UI designs, Roblox ranking bots, and magical experiences. Where luxury meets digital enchantment in an unparalleled ecosystem.</p>
+            
+            <div class="magical-offer">
+                <h2><i class="fas fa-gift"></i> Special Magical Offer</h2>
+                <p>Get your <strong>exclusive magical cape for FREE</strong> when you join the Rumora community today! Limited time offer for new members.</p>
+            </div>
+            
+            <button class="cta-button" style="padding: 18px 45px; font-size: 1.2rem;">
+                <i class="fas fa-magic"></i> Claim Your Free Cape
+            </button>
+        </div>
+    </section>
+
+    <!-- Premium Plans Section -->
+    <section class="plans-section" id="plans">
+        <div class="container">
+            <h2 class="section-title">Rumora Premium Plans</h2>
+            <div class="plans-container">
+                <!-- Silver Plan -->
+                <div class="plan-card silver">
+                    <div class="plan-badge">Most Popular</div>
+                    <div class="plan-icon">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <h3 class="plan-title">Silver Plan</h3>
+                    <div class="plan-price">$9.99<span>/month</span></div>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check"></i> Premium UI Designs</li>
+                        <li><i class="fas fa-check"></i> Roblox Ranking Bot Basic</li>
+                        <li><i class="fas fa-check"></i> 5 Bypassed Musics Monthly</li>
+                        <li><i class="fas fa-check"></i> Standard Support</li>
+                        <li><i class="fas fa-check"></i> Access to Silver Discord</li>
+                    </ul>
+                    <button class="cta-button" style="width: 100%;">Select Plan</button>
+                </div>
+
+                <!-- Gold Plan -->
+                <div class="plan-card gold">
+                    <div class="plan-icon">
+                        <i class="fas fa-gem"></i>
+                    </div>
+                    <h3 class="plan-title">Gold Plan</h3>
+                    <div class="plan-price">$19.99<span>/month</span></div>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check"></i> Everything in Silver</li>
+                        <li><i class="fas fa-check"></i> Advanced Roblox Ranking Bot</li>
+                        <li><i class="fas fa-check"></i> 15 Bypassed Musics Monthly</li>
+                        <li><i class="fas fa-check"></i> Priority Support</li>
+                        <li><i class="fas fa-check"></i> Exclusive Gold Features</li>
+                        <li><i class="fas fa-check"></i> Custom Cape Design</li>
+                    </ul>
+                    <button class="cta-button" style="width: 100%;">Select Plan</button>
+                </div>
+
+                <!-- Platinum Plan -->
+                <div class="plan-card platinum">
+                    <div class="plan-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <h3 class="plan-title">Platinum Plan</h3>
+                    <div class="plan-price">$29.99<span>/month</span></div>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check"></i> Everything in Gold</li>
+                        <li><i class="fas fa-check"></i> Unlimited Bypassed Musics</li>
+                        <li><i class="fas fa-check"></i> VIP Roblox Ranking Bot</li>
+                        <li><i class="fas fa-check"></i> 24/7 Dedicated Support</li>
+                        <li><i class="fas fa-check"></i> Discord Server Boost</li>
+                        <li><i class="fas fa-check"></i> Exclusive Platinum Community</li>
+                        <li><i class="fas fa-check"></i> Early Access to All Features</li>
+                    </ul>
+                    <button class="cta-button" style="width: 100%;">Select Plan</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services-section" id="services">
+        <div class="container">
+            <h2 class="section-title">Our Magical Services</h2>
+            <div class="services-container">
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-rainbow"></i>
+                    </div>
+                    <h3 class="service-title">Free Magical Capes</h3>
+                    <p>Receive an exclusive, magical cape for free when you join Rumora. Customize it with unique patterns and colors to stand out in any virtual world. Limited edition designs available monthly.</p>
+                </div>
+                
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3 class="service-title">Roblox Ranking Bots</h3>
+                    <p>Advanced ranking bots for Roblox games that help you climb leaderboards with magical efficiency. Customizable and undetectable. Regular updates ensure compatibility with all popular games.</p>
+                </div>
+                
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-music"></i>
+                    </div>
+                    <h3 class="service-title">Bypassed Musics</h3>
+                    <p>Access a vast library of bypassed music for platforms like Roblox. Regularly updated with the latest tracks that pass moderation. Premium quality audio with no compression artifacts.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>Rumora</h3>
+                    <p>Creating magical digital experiences since 2023. We specialize in exclusive virtual items, premium UI designs, and gaming enhancements that transform ordinary experiences into extraordinary ones.</p>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Services</h3>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Free Capes</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Premium UI Designs</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Roblox Ranking Bots</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Bypassed Musics</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Discord Server Boosts</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Premium Plans</h3>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Silver Plan</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Gold Plan</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Platinum Plan</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Compare Plans</a></li>
+                        <li><a href="#"><i class="fas fa-chevron-right"></i> Cancel Anytime</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Connect With Us</h3>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fab fa-discord"></i> Discord Community</a></li>
+                        <li><a href="#"><i class="fab fa-twitter"></i> Twitter</a></li>
+                        <li><a href="#"><i class="fab fa-youtube"></i> YouTube</a></li>
+                        <li><a href="#"><i class="fab fa-instagram"></i> Instagram</a></li>
+                        <li><a href="#"><i class="fas fa-envelope"></i> Support</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2023 Rumora. All rights reserved. | Designed with <i class="fas fa-heart" style="color: var(--magenta);"></i> for magical experiences</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Header scroll effect
+        window.addEventListener('scroll', function() {
+            const header = document.getElementById('header');
+            if (window.scrollY > 100) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('nav a, .logo').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                if (this.getAttribute('href').startsWith('#')) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // CTA button interactions
+        document.querySelectorAll('.cta-button').forEach(button => {
+            button.addEventListener('click', function() {
+                // Button click animation
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 200);
+                
+                // In a real site, this would redirect to a signup page
+                const planTitles = {
+                    'Select Plan': 'Premium Plan',
+                    'Join Now': 'Membership',
+                    'Claim Your Free Cape': 'Free Cape Offer'
+                };
+                
+                const buttonText = this.textContent.trim().replace(/\s+/g, ' ');
+                const planType = planTitles[buttonText] || 'Membership';
+                
+                alert(`Welcome to Rumora! You are being redirected to our ${planType} signup page.`);
+            });
+        });
+
+        // Add floating animation to plan cards on hover
+        document.querySelectorAll('.plan-card, .service-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.zIndex = '10';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.zIndex = '1';
+            });
+        });
+
+        // Add sparkle effect to magical offer
+        const magicalOffer = document.querySelector('.magical-offer');
+        if (magicalOffer) {
+            setInterval(() => {
+                const sparkle = document.createElement('div');
+                sparkle.style.position = 'absolute';
+                sparkle.style.width = '10px';
+                sparkle.style.height = '10px';
+                sparkle.style.background = 'radial-gradient(circle, #fff, var(--magenta))';
+                sparkle.style.borderRadius = '50%';
+                sparkle.style.left = Math.random() * 100 + '%';
+                sparkle.style.top = Math.random() * 100 + '%';
+                sparkle.style.opacity = '0.8';
+                sparkle.style.zIndex = '1';
+                sparkle.style.pointerEvents = 'none';
+                sparkle.style.boxShadow = '0 0 10px var(--magenta)';
+                
+                magicalOffer.appendChild(sparkle);
+                
+                setTimeout(() => {
+                    if (sparkle.parentNode) {
+                        sparkle.parentNode.removeChild(sparkle);
+                    }
+                }, 1000);
+            }, 500);
+        }
+    </script>
+</body>
+</html>
