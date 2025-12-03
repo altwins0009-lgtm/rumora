@@ -4,304 +4,209 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up | Rumora</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Try multiple Clerk CDN sources -->
-    <script src="https://unpkg.com/@clerk/clerk-js@4/dist/clerk.browser.js"></script>
     <style>
-        /* Your existing styles remain the same */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Montserrat', sans-serif;
-        }
-
-        :root {
-            --primary-purple: #6a0dad;
-            --dark-purple: #4a0072;
-            --light-purple: #9d4edd;
-            --magenta: #c77dff;
-            --lavender: #e0aaff;
-            --gold: #ffd700;
-            --dark-bg: #0f0b1f;
-            --card-bg: rgba(26, 15, 51, 0.95);
-            --text-light: #f5f5f5;
-            --text-gray: #cccccc;
-            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
         body {
-            background-color: var(--dark-bg);
-            color: var(--text-light);
+            background: #0f0b1f;
+            color: white;
             min-height: 100vh;
-            background-image: 
-                radial-gradient(circle at 5% 10%, rgba(106, 13, 173, 0.2) 0%, transparent 25%),
-                radial-gradient(circle at 95% 90%, rgba(157, 78, 221, 0.15) 0%, transparent 25%),
-                radial-gradient(circle at 50% 50%, rgba(106, 13, 173, 0.05) 0%, transparent 50%);
             display: flex;
-            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
 
-        /* ... (keep all your existing styles exactly as they are) ... */
+        .auth-card {
+            background: rgba(26, 15, 51, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid rgba(157, 78, 221, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
 
+        .logo {
+            font-size: 3rem;
+            color: #9d4edd;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            background: linear-gradient(90deg, #e0aaff, #c77dff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        #clerk-container {
+            min-height: 300px;
+            margin: 30px 0;
+        }
+
+        .debug {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: left;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .error { color: #ff6b6b; }
+        .success { color: #51cf66; }
+        
+        .demo-auth {
+            background: rgba(157, 78, 221, 0.1);
+            border: 1px solid rgba(157, 78, 221, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .demo-auth button {
+            background: linear-gradient(90deg, #6a0dad, #9d4edd);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="auth-header">
-        <div class="container header-container">
-            <a href="/testing" class="logo">
-                <div class="logo-icon">
-                    <i class="fas fa-hat-wizard"></i>
-                </div>
-                <div class="logo-text">Rumora</div>
-            </a>
-            <a href="/testing" class="back-button">
-                <i class="fas fa-arrow-left"></i> Back to Home
-            </a>
+    <div class="auth-card">
+        <div class="logo">
+            <i class="fas fa-hat-wizard"></i>
         </div>
-    </header>
-
-    <!-- Main Auth Container -->
-    <main class="auth-container">
-        <div class="auth-card">
-            <div class="auth-header-text">
-                <h1>Join Rumora</h1>
-                <p>Create your account to unlock magical experiences</p>
-            </div>
-
-            <!-- Special Offer -->
-            <div class="offer-banner">
-                <h3><i class="fas fa-gift"></i> New Member Bonus</h3>
-                <p>Sign up today and get:</p>
-                <ul>
-                    <li><i class="fas fa-check"></i> <strong>Free Magical Cape</strong> - Exclusive design</li>
-                    <li><i class="fas fa-check"></i> <strong>7-Day Premium Trial</strong> - All Gold Plan features</li>
-                    <li><i class="fas fa-check"></i> <strong>Early Access</strong> - To new features</li>
-                </ul>
-            </div>
-
-            <!-- Clerk Sign Up Component -->
-            <div id="clerk-signup" class="clerk-container">
-                <div class="loading-container">
-                    <div class="loading-spinner"></div>
-                    <p id="loading-text">Loading magical sign up...</p>
-                </div>
-            </div>
-
-            <!-- Debug Info (hidden by default) -->
-            <div id="debug-info" style="display: none; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin: 20px 0; font-family: monospace; font-size: 12px;">
-                <strong>Debug Information:</strong>
-                <div id="debug-output"></div>
-            </div>
-
-            <!-- Alternative Options -->
-            <div class="auth-divider">
-                <span>Or sign up with</span>
-            </div>
-
-            <div class="social-auth">
-                <button class="social-button google" id="googleSignUp">
-                    <i class="fab fa-google"></i> Sign up with Google
+        
+        <h1>Join Rumora</h1>
+        <p>Create your account to unlock magical experiences</p>
+        
+        <div id="clerk-container">
+            <div class="demo-auth" id="demo-auth">
+                <p><strong>⚠️ Clerk Authentication Temporary Issue</strong></p>
+                <p>While we fix Clerk, you can use our demo system:</p>
+                <input type="email" id="demo-email" placeholder="your@email.com" value="demo@rumora.com" style="width:100%; padding:12px; margin:10px 0; border-radius:8px; border:1px solid #444; background:rgba(255,255,255,0.05); color:white;">
+                <button onclick="useDemoAuth()">
+                    <i class="fas fa-user-circle"></i> Continue with Demo Account
                 </button>
-                <button class="social-button discord" id="discordSignUp">
-                    <i class="fab fa-discord"></i> Sign up with Discord
-                </button>
-            </div>
-
-            <!-- Navigation -->
-            <div class="auth-navigation">
-                Already have an account? <a href="/testing/signin">Sign in here</a><br>
-                <a href="/testing">Return to Rumora</a> | 
-                <a href="/testing/tos">Read Terms</a>
+                <p style="font-size:0.8rem; margin-top:10px; color:#aaa;">
+                    You'll get full access to all features with a demo account.
+                </p>
             </div>
         </div>
-    </main>
-
-    <!-- Footer -->
-    <footer class="auth-footer">
-        <div class="container">
-            <p>By creating an account, you agree to our <a href="/testing/tos">Terms of Service</a> and <a href="/testing/privacy">Privacy Policy</a></p>
-            <p>&copy; <span id="current-year">2023</span> Rumora. All magical rights reserved.</p>
+        
+        <div class="debug" id="debug">
+            <strong>Status:</strong>
+            <div id="debug-output">Checking Clerk configuration...</div>
         </div>
-    </footer>
+    </div>
 
-    <!-- Clerk Initialization - UPDATED FIXED VERSION -->
     <script>
-        // === DEBUGGING ENABLED ===
-        console.log('=== RUMORA CLERK DEBUG ===');
-        
-        // Your hardcoded Clerk key
-        const clerkPublishableKey = 'pk_test_Y2xhc3NpYy1jYXQtNjUuY2xlcmsuYWNjb3VudHMuZGV2JA';
-        
-        // Debug elements
-        const debugInfo = document.getElementById('debug-info');
+        // Debug output
         const debugOutput = document.getElementById('debug-output');
-        const loadingText = document.getElementById('loading-text');
-        const clerkContainer = document.getElementById('clerk-signup');
+        const demoAuth = document.getElementById('demo-auth');
         
-        // Show debug info
-        debugInfo.style.display = 'block';
+        // Your Clerk key - REPLACE WITH NEW KEY FROM CLERK DASHBOARD
+        const clerkKey = 'YOUR_NEW_CLERK_KEY_HERE'; // Get from https://dashboard.clerk.com
         
-        // Initial debug output
-        debugOutput.innerHTML = `
-            <p>🔑 Clerk Key: ${clerkPublishableKey ? '✅ Present' : '❌ Missing'}</p>
-            <p>📏 Key Length: ${clerkPublishableKey.length} characters</p>
-            <p>🎯 Starts with "pk_": ${clerkPublishableKey.startsWith('pk_') ? '✅ Yes' : '❌ No'}</p>
-            <p>🌐 Current URL: ${window.location.href}</p>
-            <p>⏰ Time: ${new Date().toLocaleTimeString()}</p>
-        `;
-        
-        console.log('Clerk Key:', clerkPublishableKey);
-        console.log('Key valid:', clerkPublishableKey.startsWith('pk_'));
-        console.log('Window.Clerk available:', typeof window.Clerk !== 'undefined');
-        
-        async function loadClerk() {
+        // Function to test Clerk
+        async function testClerk() {
+            debugOutput.innerHTML = `
+                <p>🔑 Clerk Key: ${clerkKey ? 'Present' : 'Missing'}</p>
+                <p>📏 Key Length: ${clerkKey ? clerkKey.length : 0}</p>
+                <p>🔧 Testing Clerk SDK...</p>
+            `;
+            
+            // Try to load Clerk
             try {
-                debugOutput.innerHTML += '<p>🚀 Attempting to load Clerk SDK...</p>';
-                loadingText.textContent = 'Initializing Clerk...';
+                // Load Clerk SDK dynamically
+                const script = document.createElement('script');
+                script.src = 'https://unpkg.com/@clerk/clerk-js@4/dist/clerk.browser.js';
                 
-                // Check if Clerk is available
-                if (typeof window.Clerk === 'undefined') {
-                    throw new Error('Clerk SDK failed to load from CDN');
-                }
-                
-                debugOutput.innerHTML += '<p>✅ Clerk SDK loaded from CDN</p>';
-                
-                // SIMPLIFIED Clerk initialization - remove complex config temporarily
-                debugOutput.innerHTML += '<p>⚙️ Initializing Clerk with key...</p>';
-                
-                await window.Clerk.load({
-                    publishableKey: clerkPublishableKey
-                    // Remove appearance config for now to simplify
-                });
-                
-                debugOutput.innerHTML += '<p>✅ Clerk initialized successfully!</p>';
-                loadingText.textContent = 'Setting up sign up form...';
-                
-                // Mount the sign-up component
-                const signUpElement = document.getElementById('clerk-signup');
-                if (signUpElement) {
-                    signUpElement.innerHTML = '';
+                script.onload = async () => {
+                    debugOutput.innerHTML += '<p>✅ Clerk SDK loaded</p>';
                     
-                    // Simple mount without extra config
-                    window.Clerk.mountSignUp(signUpElement);
-                    
-                    debugOutput.innerHTML += '<p>✅ Sign-up component mounted!</p>';
-                    loadingText.textContent = 'Ready to sign up!';
-                    
-                    // Hide loading spinner
-                    document.querySelector('.loading-spinner').style.display = 'none';
-                }
-                
-                // Handle successful sign up
-                window.Clerk.addListener(({ user }) => {
-                    if (user) {
-                        debugOutput.innerHTML += '<p>🎉 User signed up successfully!</p>';
-                        console.log('User signed up:', user);
-                        
-                        // Redirect to dashboard after 1 second
-                        setTimeout(() => {
-                            window.location.href = '/testing/dashboard';
-                        }, 1000);
+                    if (window.Clerk && clerkKey && clerkKey.startsWith('pk_')) {
+                        try {
+                            await window.Clerk.load({
+                                publishableKey: clerkKey
+                            });
+                            
+                            debugOutput.innerHTML += '<p>✅ Clerk initialized!</p>';
+                            
+                            // Hide demo auth, show Clerk
+                            demoAuth.style.display = 'none';
+                            window.Clerk.mountSignUp(document.getElementById('clerk-container'));
+                            
+                        } catch (error) {
+                            debugOutput.innerHTML += `<p class="error">❌ Clerk init error: ${error.message}</p>`;
+                        }
+                    } else {
+                        debugOutput.innerHTML += `<p class="error">❌ Clerk not available or invalid key</p>`;
                     }
-                });
+                };
                 
-                // Social sign up handlers
-                document.getElementById('googleSignUp')?.addEventListener('click', () => {
-                    window.Clerk.openSignUp({
-                        strategy: 'oauth_google'
-                    });
-                });
+                script.onerror = () => {
+                    debugOutput.innerHTML += '<p class="error">❌ Failed to load Clerk SDK</p>';
+                };
                 
-                document.getElementById('discordSignUp')?.addEventListener('click', () => {
-                    window.Clerk.openSignUp({
-                        strategy: 'oauth_discord'
-                    });
-                });
+                document.head.appendChild(script);
                 
             } catch (error) {
-                console.error('❌ Clerk Error:', error);
-                debugOutput.innerHTML += `<p style="color: #ef4444;">❌ Error: ${error.message}</p>`;
-                loadingText.textContent = 'Unable to load sign up form';
-                loadingText.style.color = '#ef4444';
-                
-                // Show fallback option
-                clerkContainer.innerHTML += `
-                    <div style="text-align: center; padding: 20px;">
-                        <p style="color: #ffcc00; margin-bottom: 15px;">
-                            <i class="fas fa-exclamation-triangle"></i> Clerk authentication unavailable
-                        </p>
-                        <button onclick="useDemoAuth()" style="
-                            background: linear-gradient(90deg, #6a0dad, #9d4edd);
-                            color: white;
-                            border: none;
-                            padding: 12px 24px;
-                            border-radius: 50px;
-                            font-weight: 600;
-                            cursor: pointer;
-                            margin-top: 10px;
-                        ">
-                            <i class="fas fa-user-circle"></i> Continue with Demo Account
-                        </button>
-                    </div>
-                `;
+                debugOutput.innerHTML += `<p class="error">❌ Error: ${error.message}</p>`;
             }
         }
         
-        // Demo authentication fallback
+        // Demo auth function
         function useDemoAuth() {
-            debugOutput.innerHTML += '<p>👤 Using demo authentication...</p>';
+            const email = document.getElementById('demo-email').value || 'demo@rumora.com';
             
-            // Create demo user session
+            debugOutput.innerHTML = `<p class="success">✅ Creating demo account for: ${email}</p>`;
+            
+            // Create demo session
             const demoUser = {
-                id: 'demo_' + Date.now(),
-                email: 'demo@rumora.com',
-                name: 'Demo User',
+                id: 'user_' + Date.now(),
+                email: email,
+                name: email.split('@')[0],
                 plan: 'Silver',
-                capeCount: 1,
+                capeCount: 3,
                 joinDate: new Date().toISOString().split('T')[0]
             };
             
-            // Store in localStorage
+            // Store session
             localStorage.setItem('rumora_user', JSON.stringify(demoUser));
+            sessionStorage.setItem('rumora_auth', 'demo');
             
             // Redirect to dashboard
-            window.location.href = '/testing/dashboard?demo=true';
+            setTimeout(() => {
+                window.location.href = '/testing/dashboard';
+            }, 1000);
         }
         
-        // Update copyright year
-        document.getElementById('current-year').textContent = new Date().getFullYear();
+        // Start testing Clerk
+        testClerk();
         
-        // Load Clerk when DOM is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', loadClerk);
-        } else {
-            // DOM already loaded
-            loadClerk();
-        }
-        
-        // Alternative Clerk loading if first attempt fails
+        // If Clerk fails after 5 seconds, show message
         setTimeout(() => {
-            if (!window.Clerk || typeof window.Clerk === 'undefined') {
-                debugOutput.innerHTML += '<p>🔄 Attempting alternative Clerk CDN...</p>';
-                
-                // Load Clerk from alternative CDN
-                const script = document.createElement('script');
-                script.src = 'https://cdn.jsdelivr.net/npm/@clerk/clerk-js@4.13.0/dist/clerk.browser.js';
-                script.onload = () => {
-                    debugOutput.innerHTML += '<p>✅ Alternative Clerk CDN loaded</p>';
-                    loadClerk(); // Retry loading
-                };
-                script.onerror = () => {
-                    debugOutput.innerHTML += '<p style="color: #ef4444;">❌ Failed to load Clerk from any CDN</p>';
-                };
-                document.head.appendChild(script);
+            if (!document.querySelector('.cl-component')) {
+                debugOutput.innerHTML += '<p class="error">⚠️ Clerk authentication taking too long. Using demo mode.</p>';
             }
-        }, 3000); // Try after 3 seconds if still not loaded
+        }, 5000);
     </script>
 </body>
 </html>
