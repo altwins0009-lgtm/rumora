@@ -10,102 +10,113 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Read HTML files
-const htmlFiles = {
-    index: path.join(__dirname, 'public', 'index.html'),
-    tos: path.join(__dirname, 'public', 'tos.html'),
-    privacy: path.join(__dirname, 'public', 'privacy.html'),
-    signin: path.join(__dirname, 'public', 'signin.html'),
-    signup: path.join(__dirname, 'public', 'signup.html'),
-    dashboard: path.join(__dirname, 'public', 'dashboard.html')
-};
-
-const htmlContent = {};
-Object.keys(htmlFiles).forEach(key => {
-    try {
-        htmlContent[key] = fs.readFileSync(htmlFiles[key], 'utf8');
-        console.log(`✅ Loaded: ${key}.html`);
-    } catch (err) {
-        console.log(`⚠️  Could not load ${key}.html: ${err.message}`);
-        htmlContent[key] = `<h1>Page not found</h1><p>The ${key} page is not available.</p>`;
-    }
-});
-
 // Helper function to inject Clerk key
-function injectClerkKey(html) {
-    const clerkKey = process.env.CLERK_PUBLISHABLE_KEY || 'pk_test_missing_key';
-    return html.replace(/{{CLERK_PUBLISHABLE_KEY}}/g, clerkKey);
+function injectClerkKey(html, clerkKey) {
+    if (!clerkKey || clerkKey === 'pk_test_missing_key') {
+        clerkKey = 'pk_test_dummy_key_for_testing_only';
+    }
+    return html
+        .replace(/{{CLERK_PUBLISHABLE_KEY}}/g, clerkKey)
+        .replace(/CLERK_PUBLISHABLE_KEY/g, clerkKey);
+}
+
+// Read HTML files with caching
+let htmlCache = {};
+function loadHtmlFile(filename) {
+    if (htmlCache[filename]) {
+        return htmlCache[filename];
+    }
+    
+    try {
+        const filePath = path.join(__dirname, 'public', filename);
+        const content = fs.readFileSync(filePath, 'utf8');
+        htmlCache[filename] = content;
+        return content;
+    } catch (err) {
+        console.error(`Error loading ${filename}:`, err.message);
+        return `<h1>Page Error</h1><p>Could not load ${filename}</p>`;
+    }
 }
 
 // Routes
 app.get('/testing', (req, res) => {
-    res.send(htmlContent.index);
+    const html = loadHtmlFile('index.html');
+    res.send(html);
 });
 
 app.get('/testing/tos', (req, res) => {
-    res.send(htmlContent.tos);
+    const html = loadHtmlFile('tos.html');
+    res.send(html);
 });
 
 app.get('/testing/privacy', (req, res) => {
-    res.send(htmlContent.privacy);
+    const html = loadHtmlFile('privacy.html');
+    res.send(html);
 });
 
 app.get('/testing/signin', (req, res) => {
-    res.send(injectClerkKey(htmlContent.signin));
+    const html = loadHtmlFile('signin.html');
+    const clerkKey = process.env.CLERK_PUBLISHABLE_KEY || 'pk_test_dummy_key';
+    const processedHtml = injectClerkKey(html, clerkKey);
+    res.send(processedHtml);
 });
 
 app.get('/testing/signup', (req, res) => {
-    res.send(injectClerkKey(htmlContent.signup));
+    const html = loadHtmlFile('signup.html');
+    const clerkKey = process.env.CLERK_PUBLISHABLE_KEY || 'pk_test_dummy_key';
+    const processedHtml = injectClerkKey(html, clerkKey);
+    res.send(processedHtml);
 });
 
-// Dashboard route (simplified demo)
+// Dashboard route
 app.get('/testing/dashboard', (req, res) => {
-    let dashboardHtml = htmlContent.dashboard;
-    dashboardHtml = dashboardHtml.replace(/{{USER_ID}}/g, 'demo-user-123');
-    dashboardHtml = dashboardHtml.replace(/{{USER_EMAIL}}/g, 'user@example.com');
-    dashboardHtml = dashboardHtml.replace(/{{USER_NAME}}/g, 'Magical User');
-    dashboardHtml = dashboardHtml.replace(/{{USER_PLAN}}/g, 'Silver Plan');
-    dashboardHtml = dashboardHtml.replace(/{{CAPE_COUNT}}/g, '3');
-    res.send(dashboardHtml);
-});
-
-// API endpoints (mock data)
-app.get('/api/user/profile', (req, res) => {
-    res.json({
-        id: 'demo-user-123',
-        email: 'user@example.com',
-        username: 'magical_user',
-        plan: 'Silver',
-        capeCount: 3,
-        joined: '2023-12-01'
-    });
-});
-
-app.get('/api/plans', (req, res) => {
-    res.json([
-        {
-            name: "Silver Plan",
-            price: "$9.99/month",
-            badge: "Most Popular"
-        },
-        {
-            name: "Gold Plan", 
-            price: "$19.99/month"
-        },
-        {
-            name: "Platinum Plan",
-            price: "$29.99/month"
-        }
-    ]);
+    let html = loadHtmlFile('dashboard.html');
+    
+    // Demo user data
+    const userData = {
+        id: 'user_' + Date.now(),
+        email: 'demo@rumora.com',
+        name: 'Magical User',
+        plan: 'Silver Plan',
+        capeCount: '3',
+        joinDate: new Date().toISOString().split('T')[0]
+    };
+    
+    // Replace placeholders
+    html = html.replace(/{{USER_ID}}/g, userData.id);
+    html = html.replace(/{{USER_EMAIL}}/g, userData.email);
+    html = html.replace(/{{USER_NAME}}/g, userData.name);
+    html = html.replace(/{{USER_PLAN}}/g, userData.plan);
+    html = html.replace(/{{CAPE_COUNT}}/g, userData.capeCount);
+    html = html.replace(/{{JOIN_DATE}}/g, userData.joinDate);
+    
+    // Inject Clerk key for dashboard if needed
+    const clerkKey = process.env.CLERK_PUBLISHABLE_KEY || 'pk_test_dummy_key';
+    html = injectClerkKey(html, clerkKey);
+    
+    res.send(html);
 });
 
 // Health check
 app.get('/health', (req, res) => {
+    const clerkKey = process.env.CLERK_PUBLISHABLE_KEY;
     res.json({
         status: 'healthy',
         service: 'rumora-website',
-        version: '1.0.0',
-        timestamp: new Date().toISOString()
+        clerk_configured: !!clerkKey && clerkKey !== 'pk_test_dummy_key',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV
+    });
+});
+
+// Clerk status endpoint
+app.get('/api/clerk-status', (req, res) => {
+    const clerkKey = process.env.CLERK_PUBLISHABLE_KEY;
+    res.json({
+        configured: !!clerkKey && clerkKey !== 'pk_test_dummy_key',
+        key_exists: !!clerkKey,
+        key_preview: clerkKey ? clerkKey.substring(0, 20) + '...' : 'none',
+        environment: process.env.NODE_ENV
     });
 });
 
@@ -146,21 +157,31 @@ app.use((req, res) => {
 
 // Start server
 app.listen(PORT, () => {
+    const clerkKey = process.env.CLERK_PUBLISHABLE_KEY;
     console.log(`
-    ╔════════════════════════════════════════════════════════╗
-    ║                                                        ║
-    ║   ✨ RUMORA MAGICAL WEBSITE ✨                         ║
-    ║                                                        ║
-    ╠════════════════════════════════════════════════════════╣
-    ║                                                        ║
-    ║   🌐 Website:    http://localhost:${PORT}/testing        ║
-    ║   🔐 Sign In:    http://localhost:${PORT}/testing/signin  ║
-    ║   📝 Sign Up:    http://localhost:${PORT}/testing/signup  ║
-    ║   📊 Dashboard:  http://localhost:${PORT}/testing/dashboard║
-    ║   📈 Health:     http://localhost:${PORT}/health         ║
-    ║                                                        ║
-    ║   Server running on port ${PORT}                         ║
-    ║                                                        ║
-    ╚════════════════════════════════════════════════════════╝
+    ╔══════════════════════════════════════════════════════════════════╗
+    ║                                                                  ║
+    ║   ✨ RUMORA MAGICAL WEBSITE ✨                                   ║
+    ║                                                                  ║
+    ╠══════════════════════════════════════════════════════════════════╣
+    ║                                                                  ║
+    ║   🌐 Website:     http://localhost:${PORT}/testing                ║
+    ║   🔐 Sign In:     http://localhost:${PORT}/testing/signin          ║
+    ║   📝 Sign Up:     http://localhost:${PORT}/testing/signup          ║
+    ║   📊 Dashboard:   http://localhost:${PORT}/testing/dashboard      ║
+    ║   📈 Health:      http://localhost:${PORT}/health                 ║
+    ║   🔧 Clerk Check: http://localhost:${PORT}/api/clerk-status       ║
+    ║                                                                  ║
+    ║   Clerk Status:   ${clerkKey ? '✅ Key Found' : '⚠️  No Key'}        ║
+    ║                                                                  ║
+    ║   Server running on port ${PORT}                                   ║
+    ║                                                                  ║
+    ╚══════════════════════════════════════════════════════════════════╝
     `);
+    
+    if (!clerkKey || clerkKey === 'pk_test_dummy_key') {
+        console.log('\n⚠️  WARNING: Clerk publishable key not configured!');
+        console.log('👉 Get one from: https://dashboard.clerk.com');
+        console.log('👉 Add to .env: CLERK_PUBLISHABLE_KEY=pk_test_your_key_here\n');
+    }
 });
