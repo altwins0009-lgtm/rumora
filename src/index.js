@@ -1,115 +1,147 @@
-// src/index.js
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
+const { ClerkExpressRequireAuth, ClerkExpressWithAuth } = require('@clerk/clerk-sdk-node');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Initialize Clerk
+const clerk = require('@clerk/clerk-sdk-node');
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Serve static files from public folder
-app.use('/static', express.static(path.join(__dirname, 'public')));
+// Set global variables for templates
+app.use((req, res, next) => {
+    res.locals.clerkPublishableKey = process.env.CLERK_PUBLISHABLE_KEY;
+    res.locals.appUrl = process.env.APP_URL || `http://localhost:${PORT}`;
+    next();
+});
 
-// Serve main website at /testing
+// Read HTML files
+const htmlFiles = {
+    index: path.join(__dirname, 'public', 'index.html'),
+    tos: path.join(__dirname, 'public', 'tos.html'),
+    privacy: path.join(__dirname, 'public', 'privacy.html'),
+    signin: path.join(__dirname, 'public', 'signin.html'),
+    signup: path.join(__dirname, 'public', 'signup.html'),
+    dashboard: path.join(__dirname, 'public', 'dashboard.html')
+};
+
+const htmlContent = {};
+Object.keys(htmlFiles).forEach(key => {
+    try {
+        htmlContent[key] = fs.readFileSync(htmlFiles[key], 'utf8');
+        console.log(`✅ Loaded: ${key}.html`);
+    } catch (err) {
+        console.log(`⚠️  Could not load ${key}.html: ${err.message}`);
+        htmlContent[key] = `<h1>Page not found</h1><p>The ${key} page is not available.</p>`;
+    }
+});
+
+// Public Routes
 app.get('/testing', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.send(htmlContent.index);
 });
 
-// API endpoint for plans (optional)
-app.get('/api/plans', (req, res) => {
-    const plans = [
-        {
-            id: 1,
-            name: "Silver Plan",
-            price: "$9.99/month",
-            features: [
-                "Premium UI Designs",
-                "Roblox Ranking Bot Basic",
-                "5 Bypassed Musics Monthly",
-                "Standard Support",
-                "Access to Silver Discord"
-            ],
-            badge: "Most Popular"
-        },
-        {
-            id: 2,
-            name: "Gold Plan",
-            price: "$19.99/month",
-            features: [
-                "Everything in Silver",
-                "Advanced Roblox Ranking Bot",
-                "15 Bypassed Musics Monthly",
-                "Priority Support",
-                "Exclusive Gold Features",
-                "Custom Cape Design"
-            ]
-        },
-        {
-            id: 3,
-            name: "Platinum Plan",
-            price: "$29.99/month",
-            features: [
-                "Everything in Gold",
-                "Unlimited Bypassed Musics",
-                "VIP Roblox Ranking Bot",
-                "24/7 Dedicated Support",
-                "Discord Server Boost",
-                "Exclusive Platinum Community",
-                "Early Access to All Features"
-            ]
-        }
-    ];
-    res.json(plans);
+app.get('/testing/tos', (req, res) => {
+    res.send(htmlContent.tos);
 });
 
-// API endpoint for services
-app.get('/api/services', (req, res) => {
-    const services = [
-        {
-            id: 1,
-            name: "Free Magical Capes",
-            description: "Receive an exclusive, magical cape for free when you join Rumora. Customize it with unique patterns and colors to stand out in any virtual world.",
-            icon: "fa-rainbow"
-        },
-        {
-            id: 2,
-            name: "Roblox Ranking Bots",
-            description: "Advanced ranking bots for Roblox games that help you climb leaderboards with magical efficiency. Customizable and undetectable.",
-            icon: "fa-robot"
-        },
-        {
-            id: 3,
-            name: "Bypassed Musics",
-            description: "Access a vast library of bypassed music for platforms like Roblox. Regularly updated with the latest tracks that pass moderation.",
-            icon: "fa-music"
-        }
-    ];
-    res.json(services);
+app.get('/testing/privacy', (req, res) => {
+    res.send(htmlContent.privacy);
 });
 
-// Handle form submissions (example)
-app.post('/api/signup', (req, res) => {
-    // In a real app, you would save to database
-    console.log('Signup request received:', req.body);
-    res.json({
-        success: true,
-        message: "Welcome to Rumora! Check your email for verification.",
-        redirect: "/testing"
-    });
+// Authentication Routes
+app.get('/testing/signin', (req, res) => {
+    const signinPage = htmlContent.signin.replace(
+        '{{CLERK_PUBLISHABLE_KEY}}',
+        process.env.CLERK_PUBLISHABLE_KEY || 'pk_test_missing'
+    );
+    res.send(signinPage);
 });
 
-// Health check endpoint
+app.get('/testing/signup', (req, res) => {
+    const signupPage = htmlContent.signup.replace(
+        '{{CLERK_PUBLISHABLE_KEY}}',
+        process.env.CLERK_PUBLISHABLE_KEY || 'pk_test_missing'
+    );
+    res.send(signupPage);
+});
+
+// Protected Dashboard Route
+app.get('/testing/dashboard', ClerkExpressRequireAuth(), (req, res) => {
+    const userId = req.auth.userId;
+    const user = req.auth.user;
+    
+    let dashboardPage = htmlContent.dashboard;
+    dashboardPage = dashboardPage.replace(/{{USER_ID}}/g, userId);
+    dashboardPage = dashboardPage.replace(/{{USER_EMAIL}}/g, user.primaryEmailAddress.emailAddress);
+    dashboardPage = dashboardPage.replace(/{{USER_NAME}}/g, user.firstName || user.username || 'User');
+    
+    res.send(dashboardPage);
+});
+
+// Clerk webhooks and API endpoints
+app.post('/api/clerk/webhook', express.raw({ type: 'application/json' }), (req, res) => {
+    const svixId = req.headers['svix-id'];
+    const svixTimestamp = req.headers['svix-timestamp'];
+    const svixSignature = req.headers['svix-signature'];
+    
+    if (!svixId || !svixTimestamp || !svixSignature) {
+        return res.status(400).json({ error: 'Missing Svix headers' });
+    }
+    
+    // Verify webhook signature (implement proper verification in production)
+    console.log('📥 Clerk webhook received:', req.body.toString());
+    
+    res.json({ received: true });
+});
+
+// API endpoints with auth
+app.get('/api/user/profile', ClerkExpressWithAuth(), async (req, res) => {
+    try {
+        const user = await clerk.users.getUser(req.auth.userId);
+        res.json({
+            id: user.id,
+            email: user.primaryEmailAddress?.emailAddress,
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            imageUrl: user.imageUrl,
+            createdAt: user.createdAt
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch user profile' });
+    }
+});
+
+app.get('/api/user/subscription', ClerkExpressRequireAuth(), (req, res) => {
+    // This would connect to your subscription service
+    const mockSubscription = {
+        plan: 'Silver',
+        status: 'active',
+        renewalDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        features: ['premium_ui', 'basic_bot', '5_music']
+    };
+    res.json(mockSubscription);
+});
+
+// Health check
 app.get('/health', (req, res) => {
     res.json({
         status: 'healthy',
         service: 'rumora-website',
-        version: '1.0.0',
+        clerk: process.env.CLERK_PUBLISHABLE_KEY ? 'configured' : 'not-configured',
         timestamp: new Date().toISOString()
     });
 });
 
-// Redirect root to /testing
+// Root redirect
 app.get('/', (req, res) => {
     res.redirect('/testing');
 });
@@ -120,73 +152,47 @@ app.use((req, res) => {
         <!DOCTYPE html>
         <html>
         <head>
-            <title>404 - Page Not Found</title>
+            <title>404 - Rumora</title>
             <style>
-                body {
-                    background: #0f0b1f;
-                    color: #fff;
-                    font-family: 'Montserrat', sans-serif;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    height: 100vh;
-                    margin: 0;
-                    text-align: center;
-                }
-                .container {
-                    padding: 2rem;
-                }
-                h1 {
-                    font-size: 4rem;
-                    color: #9d4edd;
-                    margin-bottom: 1rem;
-                }
-                p {
-                    font-size: 1.2rem;
-                    margin-bottom: 2rem;
-                    color: #cccccc;
-                }
-                a {
-                    color: #c77dff;
-                    text-decoration: none;
-                    font-weight: bold;
-                    padding: 10px 20px;
-                    border: 2px solid #c77dff;
-                    border-radius: 5px;
-                    transition: all 0.3s;
-                }
-                a:hover {
-                    background: #c77dff;
-                    color: #0f0b1f;
-                }
+                body { background: #0f0b1f; color: white; font-family: 'Montserrat', sans-serif; 
+                       display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; text-align: center; }
+                .container { padding: 3rem; max-width: 600px; }
+                h1 { font-size: 5rem; color: #9d4edd; margin: 0; }
+                p { font-size: 1.2rem; margin: 2rem 0; color: #cccccc; }
+                .magic-button { display: inline-block; background: linear-gradient(90deg, #6a0dad, #9d4edd); 
+                               color: white; padding: 15px 30px; border-radius: 50px; text-decoration: none; 
+                               font-weight: 600; transition: all 0.3s; }
+                .magic-button:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(106, 13, 173, 0.6); }
             </style>
         </head>
         <body>
             <div class="container">
                 <h1>404</h1>
                 <p>The magical page you're looking for has vanished!</p>
-                <a href="/testing">Return to Rumora</a>
+                <a href="/testing" class="magic-button">Back to Rumora</a>
             </div>
         </body>
         </html>
     `);
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({
-        error: 'Something magical went wrong!',
-        message: process.env.NODE_ENV === 'development' ? err.message : undefined
-    });
-});
-
 // Start server
 app.listen(PORT, () => {
-    console.log(`✨ Rumora magical website is running! ✨`);
-    console.log(`📍 Local: http://localhost:${PORT}/testing`);
-    console.log(`📍 Health: http://localhost:${PORT}/health`);
-    console.log(`📍 API Plans: http://localhost:${PORT}/api/plans`);
-    console.log(`\n📁 Static files served from: ${path.join(__dirname, 'public')}`);
-    console.log(`🚀 Server ready at port ${PORT}`);
+    console.log(`
+    ╔════════════════════════════════════════════════════════╗
+    ║                                                        ║
+    ║   ✨ RUMORA MAGICAL WEBSITE WITH CLERK AUTH ✨         ║
+    ║                                                        ║
+    ╠════════════════════════════════════════════════════════╣
+    ║                                                        ║
+    ║   🌐 Website:    http://rumora.frii.site/testing       ║
+    ║   🔐 Sign In:    http://localhost:${PORT}/testing/signin  ║
+    ║   📝 Sign Up:    http://localhost:${PORT}/testing/signup  ║
+    ║   📊 Dashboard:  http://localhost:${PORT}/testing/dashboard║
+    ║   📈 Health:     http://localhost:${PORT}/health         ║
+    ║                                                        ║
+    ║   Clerk Status:  ${process.env.CLERK_PUBLISHABLE_KEY ? '✅ Configured' : '❌ Not Configured'}  ║
+    ║                                                        ║
+    ╚════════════════════════════════════════════════════════╝
+    `);
 });
