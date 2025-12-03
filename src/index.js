@@ -37,7 +37,7 @@ function injectClerkKey(html) {
     return html.replace(/{{CLERK_PUBLISHABLE_KEY}}/g, clerkKey);
 }
 
-// Public Routes
+// Routes
 app.get('/testing', (req, res) => {
     res.send(htmlContent.index);
 });
@@ -58,16 +58,18 @@ app.get('/testing/signup', (req, res) => {
     res.send(injectClerkKey(htmlContent.signup));
 });
 
-// Dashboard route (simplified - no auth required for demo)
+// Dashboard route (simplified demo)
 app.get('/testing/dashboard', (req, res) => {
     let dashboardHtml = htmlContent.dashboard;
     dashboardHtml = dashboardHtml.replace(/{{USER_ID}}/g, 'demo-user-123');
     dashboardHtml = dashboardHtml.replace(/{{USER_EMAIL}}/g, 'user@example.com');
     dashboardHtml = dashboardHtml.replace(/{{USER_NAME}}/g, 'Magical User');
+    dashboardHtml = dashboardHtml.replace(/{{USER_PLAN}}/g, 'Silver Plan');
+    dashboardHtml = dashboardHtml.replace(/{{CAPE_COUNT}}/g, '3');
     res.send(dashboardHtml);
 });
 
-// Simulated API endpoints
+// API endpoints (mock data)
 app.get('/api/user/profile', (req, res) => {
     res.json({
         id: 'demo-user-123',
