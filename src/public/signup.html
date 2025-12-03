@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up | Rumora</title>
+    <!-- Use standard Clerk CDN -->
     <script src="https://cdn.clerk.com/clerk-js.v4.13.0.min.js"></script>
     <style>
+        /* Keep your styles */
         body {
             margin: 0;
             padding: 40px;
@@ -72,7 +74,6 @@
     <script>
         // === YOUR LIVE CLERK KEY ===
         const CLERK_PUBLISHABLE_KEY = 'pk_live_Y2xlcmsucnVtb3JhLmZyaWkuc2l0ZSQ';
-        const CLERK_FRONTEND_API = 'https://clerk.rumora.frii.site';
         
         const statusEl = document.getElementById('status');
         
@@ -82,7 +83,7 @@
             console.log('Clerk Status:', message);
         }
         
-        // Initialize Clerk with custom domain
+        // Initialize Clerk - SIMPLE VERSION
         async function initializeClerk() {
             updateStatus('Starting Clerk initialization...');
             
@@ -94,32 +95,36 @@
             
             updateStatus(`✅ Using Clerk key: ${CLERK_PUBLISHABLE_KEY.substring(0, 20)}...`);
             
-            // Wait for Clerk SDK to load
-            let attempts = 0;
-            const waitInterval = setInterval(() => {
-                attempts++;
+            // Check if Clerk is loaded
+            if (typeof Clerk === 'undefined') {
+                updateStatus('❌ Clerk SDK not loaded. Trying alternative CDN...', 'error');
                 
-                if (window.Clerk) {
-                    clearInterval(waitInterval);
+                // Load alternative CDN
+                const script = document.createElement('script');
+                script.src = 'https://unpkg.com/@clerk/clerk-js@4.13.0/dist/clerk.browser.js';
+                script.onload = () => {
+                    updateStatus('✅ Clerk SDK loaded from alternative CDN');
                     loadClerk();
-                } else if (attempts > 10) {
-                    clearInterval(waitInterval);
-                    updateStatus('❌ Clerk SDK failed to load', 'error');
-                } else {
-                    updateStatus(`Waiting for Clerk SDK... (${attempts}/10)`);
-                }
-            }, 500);
+                };
+                script.onerror = () => {
+                    updateStatus('❌ Failed to load Clerk from any CDN', 'error');
+                };
+                document.head.appendChild(script);
+                return;
+            }
+            
+            // Clerk is already loaded
+            loadClerk();
         }
         
-        // Load Clerk with custom configuration
+        // Load Clerk with just the publishable key (NO custom domain)
         async function loadClerk() {
             try {
-                updateStatus('Configuring Clerk with custom domain...');
+                updateStatus('Configuring Clerk...');
                 
-                // IMPORTANT: Use the custom frontend API URL
+                // SIMPLE: Just use publishableKey, no frontendApi
                 await Clerk.load({
-                    publishableKey: CLERK_PUBLISHABLE_KEY,
-                    frontendApi: CLERK_FRONTEND_API
+                    publishableKey: CLERK_PUBLISHABLE_KEY
                 });
                 
                 updateStatus('✅ Clerk configured successfully!', 'success');
@@ -132,9 +137,6 @@
                             colorText: '#ffffff',
                             colorBackground: 'transparent'
                         }
-                    },
-                    signUp: {
-                        // Optional: Customize sign-up behavior
                     }
                 });
                 
@@ -143,33 +145,67 @@
                 // Listen for successful sign-up
                 Clerk.addListener(({ user }) => {
                     if (user) {
-                        updateStatus('🎉 Account created! Redirecting to dashboard...', 'success');
+                        updateStatus('🎉 Account created! Redirecting...', 'success');
                         
                         // Store user session
                         localStorage.setItem('rumora_user_id', user.id);
                         localStorage.setItem('rumora_user_email', user.primaryEmailAddress.emailAddress);
                         
-                        // Redirect after 1 second
+                        // Redirect
                         setTimeout(() => {
                             window.location.href = '/testing/dashboard';
                         }, 1000);
                     }
                 });
                 
-                // Handle errors
-                Clerk.addListener(({ error }) => {
-                    if (error) {
-                        updateStatus(`⚠️ Clerk error: ${error.message}`, 'error');
-                    }
-                });
-                
             } catch (error) {
-                updateStatus(`❌ Clerk initialization failed: ${error.message}`, 'error');
-                console.error('Clerk error details:', error);
+                updateStatus(`❌ Clerk error: ${error.message}`, 'error');
+                console.error('Clerk error:', error);
+                
+                // Show fallback option
+                document.getElementById('clerk-container').innerHTML += `
+                    <div style="text-align: center; padding: 20px;">
+                        <p style="color: #ffcc00; margin-bottom: 15px;">
+                            <i class="fas fa-exclamation-triangle"></i> Clerk authentication unavailable
+                        </p>
+                        <button onclick="useDemoAuth()" style="
+                            background: linear-gradient(90deg, #6a0dad, #9d4edd);
+                            color: white;
+                            border: none;
+                            padding: 12px 24px;
+                            border-radius: 50px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            margin-top: 10px;
+                        ">
+                            Continue with Demo Account
+                        </button>
+                    </div>
+                `;
             }
         }
         
-        // Start initialization when page loads
+        // Demo auth fallback
+        function useDemoAuth() {
+            const email = prompt('Enter your email:', 'user@rumora.com');
+            if (email) {
+                updateStatus(`Creating demo account for ${email}...`, 'success');
+                
+                localStorage.setItem('rumora_user', JSON.stringify({
+                    email: email,
+                    name: email.split('@')[0],
+                    plan: 'Silver',
+                    capeCount: 3,
+                    joinDate: new Date().toISOString().split('T')[0]
+                }));
+                
+                setTimeout(() => {
+                    window.location.href = '/testing/dashboard';
+                }, 1000);
+            }
+        }
+        
+        // Start when page loads
         document.addEventListener('DOMContentLoaded', initializeClerk);
         
         // Add spinner animation
