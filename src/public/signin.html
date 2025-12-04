@@ -8,7 +8,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
     <style>
         * {
             margin: 0;
@@ -24,6 +23,7 @@
             --magenta: #c77dff;
             --lavender: #e0aaff;
             --gold: #ffd700;
+            --discord-blue: #5865F2;
             --dark-bg: #0f0b1f;
             --card-bg: rgba(26, 15, 51, 0.95);
             --text-light: #f5f5f5;
@@ -43,7 +43,6 @@
             flex-direction: column;
         }
 
-        /* Header */
         .auth-header {
             padding: 25px 0;
             background: rgba(15, 11, 31, 0.95);
@@ -107,7 +106,6 @@
             transform: translateY(-2px);
         }
 
-        /* Main Auth Container */
         .auth-container {
             flex: 1;
             display: flex;
@@ -147,64 +145,66 @@
             font-size: 1.1rem;
         }
 
-        /* Clerk Container Styling */
-        .clerk-container {
+        .magical-offer {
+            background: linear-gradient(135deg, rgba(157, 78, 221, 0.15), rgba(106, 13, 173, 0.1));
+            border: 1px solid rgba(157, 78, 221, 0.3);
+            border-radius: 15px;
+            padding: 25px;
             margin: 30px 0;
+            text-align: left;
         }
 
-        /* Clerk Component Customizations */
-        .cl-component {
-            --clerk-font-family: 'Montserrat', sans-serif;
-            --clerk-primary: #9d4edd;
-            --clerk-primary-light: #c77dff;
-            --clerk-primary-dark: #6a0dad;
-            --clerk-success: #10b981;
-            --clerk-danger: #ef4444;
-            --clerk-warning: #f59e0b;
-            --clerk-border-radius: 12px;
-            --clerk-spacing: 1rem;
+        .magical-offer h3 {
+            color: var(--gold);
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        /* Clerk Buttons */
-        .cl-formButtonPrimary {
-            background: linear-gradient(90deg, var(--primary-purple), var(--light-purple)) !important;
-            border: none !important;
-            border-radius: 50px !important;
-            font-weight: 600 !important;
-            transition: var(--transition) !important;
-            box-shadow: 0 5px 20px rgba(106, 13, 173, 0.4) !important;
+        .magical-offer ul {
+            list-style: none;
+            margin: 15px 0 0 0;
+            padding-left: 0;
         }
 
-        .cl-formButtonPrimary:hover {
-            transform: translateY(-3px) !important;
-            box-shadow: 0 10px 25px rgba(106, 13, 173, 0.6) !important;
+        .magical-offer li {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        /* Clerk Inputs */
-        .cl-formFieldInput {
-            background: rgba(255, 255, 255, 0.05) !important;
-            border: 1px solid rgba(157, 78, 221, 0.3) !important;
-            border-radius: 12px !important;
-            color: var(--text-light) !important;
-            transition: var(--transition) !important;
+        .magical-offer li i {
+            color: var(--magenta);
         }
 
-        .cl-formFieldInput:focus {
-            border-color: var(--magenta) !important;
-            box-shadow: 0 0 0 3px rgba(157, 78, 221, 0.2) !important;
+        .discord-auth-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            width: 100%;
+            padding: 18px;
+            background: var(--discord-blue);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            margin: 20px 0;
+            text-decoration: none;
         }
 
-        /* Clerk Links */
-        .cl-footerActionLink {
-            color: var(--magenta) !important;
-            font-weight: 600 !important;
+        .discord-auth-button:hover {
+            background: #4752c4;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(88, 101, 242, 0.4);
         }
 
-        .cl-footerActionLink:hover {
-            color: var(--lavender) !important;
-        }
-
-        /* Alternative Auth Options */
         .auth-divider {
             display: flex;
             align-items: center;
@@ -225,65 +225,18 @@
             font-size: 0.9rem;
         }
 
-        .social-auth {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin: 20px 0;
+        .feature-list {
+            text-align: left;
+            margin: 30px 0;
         }
 
-        .social-button {
+        .feature-list li {
+            margin: 15px 0;
             display: flex;
             align-items: center;
-            justify-content: center;
             gap: 15px;
-            padding: 15px;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: var(--text-light);
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
         }
 
-        .social-button:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .social-button.google {
-            border-color: #DB4437;
-        }
-
-        .social-button.discord {
-            border-color: #5865F2;
-        }
-
-        /* Loading State */
-        .loading-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 60px 0;
-        }
-
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(157, 78, 221, 0.3);
-            border-top-color: var(--magenta);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Auth Navigation */
         .auth-navigation {
             margin-top: 30px;
             padding-top: 25px;
@@ -303,7 +256,6 @@
             text-decoration: underline;
         }
 
-        /* Footer */
         .auth-footer {
             text-align: center;
             padding: 30px 0;
@@ -321,7 +273,6 @@
             color: var(--lavender);
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .auth-card {
                 padding: 30px;
@@ -369,36 +320,41 @@
         <div class="auth-card">
             <div class="auth-header-text">
                 <h1>Welcome Back</h1>
-                <p>Sign in to access your magical Rumora experience</p>
+                <p>Sign in with Discord to access your magical account</p>
             </div>
 
-            <!-- Clerk Sign In Component -->
-            <div id="clerk-signin" class="clerk-container">
-                <div class="loading-container">
-                    <div class="loading-spinner"></div>
-                    <p>Loading magical sign in...</p>
-                </div>
+            <div class="magical-offer">
+                <h3><i class="fas fa-gift"></i> Returning Member Perks</h3>
+                <ul>
+                    <li><i class="fas fa-check"></i> <strong>Access Your Capes</strong> - All your magical items</li>
+                    <li><i class="fas fa-check"></i> <strong>Premium Features</strong> - Based on your plan</li>
+                    <li><i class="fas fa-check"></i> <strong>Dashboard Access</strong> - Manage your account</li>
+                </ul>
             </div>
 
-            <!-- Alternative Options -->
+            <!-- Discord Auth Button -->
+            <a href="{{DISCORD_AUTH_URL}}" class="discord-auth-button">
+                <i class="fab fa-discord"></i> Sign in with Discord
+            </a>
+
             <div class="auth-divider">
-                <span>Or continue with</span>
+                <span>Why Discord?</span>
             </div>
 
-            <div class="social-auth">
-                <button class="social-button google" id="googleSignIn">
-                    <i class="fab fa-google"></i> Sign in with Google
-                </button>
-                <button class="social-button discord" id="discordSignIn">
-                    <i class="fab fa-discord"></i> Sign in with Discord
-                </button>
+            <div class="feature-list">
+                <ul style="list-style: none; padding: 0;">
+                    <li><i class="fas fa-shield-alt" style="color: var(--discord-blue);"></i> <strong>Secure</strong> - No passwords to remember</li>
+                    <li><i class="fas fa-bolt" style="color: var(--discord-blue);"></i> <strong>Instant</strong> - One-click authentication</li>
+                    <li><i class="fas fa-gamepad" style="color: var(--discord-blue);"></i> <strong>Gaming Focused</strong> - Perfect for Rumora services</li>
+                    <li><i class="fas fa-user-circle" style="color: var(--discord-blue);"></i> <strong>Profile Sync</strong> - Use your Discord avatar & username</li>
+                </ul>
             </div>
 
             <!-- Navigation -->
             <div class="auth-navigation">
-                Don't have an account? <a href="/testing/signup">Create one now</a><br>
+                New to Rumora? <a href="/testing/signup">Create an account</a><br>
                 <a href="/testing">Return to Rumora</a> | 
-                <a href="#">Forgot password?</a>
+                <a href="/testing/tos">Terms of Service</a>
             </div>
         </div>
     </main>
@@ -407,144 +363,59 @@
     <footer class="auth-footer">
         <div class="container">
             <p>By signing in, you agree to our <a href="/testing/tos">Terms of Service</a> and <a href="/testing/privacy">Privacy Policy</a></p>
-            <p>&copy; 2023 Rumora. All magical rights reserved.</p>
+            <p>&copy; <span id="current-year">2023</span> Rumora. All magical rights reserved.</p>
         </div>
     </footer>
 
-    <!-- Clerk Initialization -->
     <script>
-        // Initialize Clerk
-        const clerkPublishableKey = '{{CLERK_PUBLISHABLE_KEY}}' || 'pk_test_YOUR_PUBLISHABLE_KEY';
+        // Update copyright year
+        document.getElementById('current-year').textContent = new Date().getFullYear();
         
-        const Clerk = window.Clerk;
-        
-        async function loadClerk() {
-            try {
-                await Clerk.load({
-                    publishableKey: clerkPublishableKey,
-                    appearance: {
-                        variables: {
-                            colorPrimary: '#9d4edd',
-                            colorText: '#f5f5f5',
-                            colorInputText: '#f5f5f5',
-                            colorBackground: 'transparent',
-                            colorInputBackground: 'rgba(255, 255, 255, 0.05)',
-                            borderRadius: '12px'
-                        },
-                        elements: {
-                            formButtonPrimary: {
-                                backgroundColor: '#9d4edd',
-                                backgroundImage: 'linear-gradient(90deg, #6a0dad, #9d4edd)',
-                                border: 'none',
-                                borderRadius: '50px',
-                                fontWeight: '600',
-                                boxShadow: '0 5px 20px rgba(106, 13, 173, 0.4)',
-                                transition: 'all 0.3s ease'
-                            },
-                            formButtonPrimary__hover: {
-                                transform: 'translateY(-3px)',
-                                boxShadow: '0 10px 25px rgba(106, 13, 173, 0.6)'
-                            },
-                            card: {
-                                backgroundColor: 'rgba(26, 15, 51, 0.95)',
-                                border: '1px solid rgba(157, 78, 221, 0.2)',
-                                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
-                                borderRadius: '25px'
-                            },
-                            headerTitle: {
-                                background: 'linear-gradient(90deg, #e0aaff, #c77dff)',
-                                WebkitBackgroundClip: 'text',
-                                WebkitTextFillColor: 'transparent',
-                                fontSize: '2.5rem',
-                                fontWeight: '800'
-                            },
-                            headerSubtitle: {
-                                color: '#cccccc'
-                            },
-                            formFieldInput: {
-                                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                                border: '1px solid rgba(157, 78, 221, 0.3)',
-                                borderRadius: '12px',
-                                color: '#f5f5f5',
-                                transition: 'all 0.3s ease'
-                            },
-                            formFieldInput__focus: {
-                                borderColor: '#c77dff',
-                                boxShadow: '0 0 0 3px rgba(157, 78, 221, 0.2)'
-                            },
-                            footerActionLink: {
-                                color: '#c77dff',
-                                fontWeight: '600'
-                            },
-                            footerActionLink__hover: {
-                                color: '#e0aaff'
-                            }
-                        }
-                    }
-                });
-
-                // Mount the sign-in component
-                const signInElement = document.getElementById('clerk-signin');
-                if (signInElement) {
-                    signInElement.innerHTML = '';
-                    Clerk.mountSignIn(signInElement, {
-                        appearance: {
-                            elements: {
-                                rootBox: {
-                                    width: '100%',
-                                    margin: '0 auto'
-                                }
-                            }
-                        }
-                    });
-                }
-
-                // Handle successful sign in
-                Clerk.addListener(({ user }) => {
-                    if (user) {
-                        console.log('User signed in:', user);
-                        // Redirect to dashboard
-                        window.location.href = '/testing/dashboard';
-                    }
-                });
-
-                // Social sign in handlers
-                document.getElementById('googleSignIn')?.addEventListener('click', () => {
-                    Clerk.openSignIn({
-                        strategy: 'oauth_google'
-                    });
-                });
-
-                document.getElementById('discordSignIn')?.addEventListener('click', () => {
-                    Clerk.openSignIn({
-                        strategy: 'oauth_discord'
-                    });
-                });
-
-            } catch (error) {
-                console.error('Error loading Clerk:', error);
-                document.getElementById('clerk-signin').innerHTML = `
-                    <div style="text-align: center; color: #ef4444; padding: 20px;">
-                        <p>Unable to load sign in. Please try again later.</p>
-                        <button onclick="window.location.reload()" style="
-                            background: linear-gradient(90deg, #6a0dad, #9d4edd);
-                            color: white;
-                            border: none;
-                            padding: 10px 20px;
-                            border-radius: 50px;
-                            margin-top: 10px;
-                            cursor: pointer;
-                        ">Retry</button>
-                    </div>
-                `;
-            }
+        // Check for URL errors
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('error')) {
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = `
+                background: rgba(239, 68, 68, 0.1);
+                border: 1px solid rgba(239, 68, 68, 0.3);
+                color: #ef4444;
+                padding: 15px;
+                border-radius: 10px;
+                margin: 20px 0;
+                text-align: center;
+            `;
+            errorDiv.innerHTML = `
+                <p><i class="fas fa-exclamation-triangle"></i> Authentication failed. Please try again.</p>
+            `;
+            document.querySelector('.auth-card').prepend(errorDiv);
         }
-
-        // Load Clerk when DOM is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', loadClerk);
-        } else {
-            loadClerk();
+        
+        // Check if Discord is configured
+        const discordButton = document.querySelector('.discord-auth-button');
+        if (!discordButton.href || discordButton.href.includes('{{DISCORD_AUTH_URL}}')) {
+            discordButton.style.opacity = '0.5';
+            discordButton.style.cursor = 'not-allowed';
+            discordButton.onclick = (e) => {
+                e.preventDefault();
+                alert('Discord authentication is not configured. Please contact support.');
+            };
+            
+            const warning = document.createElement('div');
+            warning.style.cssText = `
+                background: rgba(245, 158, 11, 0.1);
+                border: 1px solid rgba(245, 158, 11, 0.3);
+                color: #f59e0b;
+                padding: 15px;
+                border-radius: 10px;
+                margin: 20px 0;
+                text-align: center;
+                font-size: 0.9rem;
+            `;
+            warning.innerHTML = `
+                <p><i class="fas fa-tools"></i> Discord authentication is being configured.</p>
+                <p>In the meantime, you can <a href="/testing/dashboard?demo=true" style="color: #9d4edd; font-weight: 600;">use demo mode</a>.</p>
+            `;
+            document.querySelector('.auth-card').prepend(warning);
         }
     </script>
 </body>
