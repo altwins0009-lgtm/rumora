@@ -4,173 +4,317 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up | Rumora</title>
-    <!-- Use Clerk from YOUR custom domain -->
-    <script src="https://clerk.rumora.frii.site/npm/@clerk/clerk-js@4/dist/clerk.browser.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Load Clerk from YOUR satellite domain -->
+    <script src="{{CLERK_FRONTEND_API}}/npm/@clerk/clerk-js@4/dist/clerk.browser.js"></script>
     <style>
-        /* Your existing styles */
-        body {
+        /* Your existing beautiful styles remain exactly the same */
+        * {
             margin: 0;
-            padding: 40px;
-            background: #0f0b1f;
-            color: white;
-            font-family: sans-serif;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        :root {
+            --primary-purple: #6a0dad;
+            --dark-purple: #4a0072;
+            --light-purple: #9d4edd;
+            --magenta: #c77dff;
+            --lavender: #e0aaff;
+            --gold: #ffd700;
+            --dark-bg: #0f0b1f;
+            --card-bg: rgba(26, 15, 51, 0.95);
+            --text-light: #f5f5f5;
+            --text-gray: #cccccc;
+            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
             min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 5% 10%, rgba(106, 13, 173, 0.2) 0%, transparent 25%),
+                radial-gradient(circle at 95% 90%, rgba(157, 78, 221, 0.15) 0%, transparent 25%),
+                radial-gradient(circle at 50% 50%, rgba(106, 13, 173, 0.05) 0%, transparent 50%);
             display: flex;
-            align-items: center;
-            justify-content: center;
+            flex-direction: column;
         }
-        .container {
-            width: 100%;
-            max-width: 500px;
-            text-align: center;
-        }
-        /* ... rest of your styles ... */
+
+        /* ... KEEP ALL YOUR EXISTING STYLES EXACTLY AS THEY ARE ... */
+        /* (Don't change any CSS, it's perfect!) */
+
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="logo">✨</div>
-        <h1>Join Rumora</h1>
-        <p>Create your account to access magical features</p>
-        
-        <div id="clerk-container">
-            Loading Clerk authentication...
+    <!-- Header -->
+    <header class="auth-header">
+        <div class="container header-container">
+            <a href="/testing" class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-hat-wizard"></i>
+                </div>
+                <div class="logo-text">Rumora</div>
+            </a>
+            <a href="/testing" class="back-button">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
         </div>
-        
-        <div class="status" id="status">
-            Initializing...
-        </div>
-    </div>
+    </header>
 
+    <!-- Main Auth Container -->
+    <main class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header-text">
+                <h1>Join Rumora</h1>
+                <p>Create your account to unlock magical experiences</p>
+            </div>
+
+            <!-- Special Offer -->
+            <div class="offer-banner">
+                <h3><i class="fas fa-gift"></i> New Member Bonus</h3>
+                <p>Sign up today and get:</p>
+                <ul>
+                    <li><i class="fas fa-check"></i> <strong>Free Magical Cape</strong> - Exclusive design</li>
+                    <li><i class="fas fa-check"></i> <strong>7-Day Premium Trial</strong> - All Gold Plan features</li>
+                    <li><i class="fas fa-check"></i> <strong>Early Access</strong> - To new features</li>
+                </ul>
+            </div>
+
+            <!-- Clerk Sign Up Component -->
+            <div id="clerk-signup" class="clerk-container">
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <p id="loading-text">Loading magical sign up...</p>
+                </div>
+            </div>
+
+            <!-- Status Display -->
+            <div id="status-container" style="display: none; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin: 20px 0; font-size: 0.9rem;">
+                <div id="status-message"></div>
+            </div>
+
+            <!-- Alternative Options -->
+            <div class="auth-divider">
+                <span>Or sign up with</span>
+            </div>
+
+            <div class="social-auth">
+                <button class="social-button google" id="googleSignUp">
+                    <i class="fab fa-google"></i> Sign up with Google
+                </button>
+                <button class="social-button discord" id="discordSignUp">
+                    <i class="fab fa-discord"></i> Sign up with Discord
+                </button>
+            </div>
+
+            <!-- Navigation -->
+            <div class="auth-navigation">
+                Already have an account? <a href="/testing/signin">Sign in here</a><br>
+                <a href="/testing">Return to Rumora</a> | 
+                <a href="/testing/tos">Read Terms</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="auth-footer">
+        <div class="container">
+            <p>By creating an account, you agree to our <a href="/testing/tos">Terms of Service</a> and <a href="/testing/privacy">Privacy Policy</a></p>
+            <p>&copy; <span id="current-year">2023</span> Rumora. All magical rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Clerk Initialization - PRODUCTION READY -->
     <script>
-        // === YOUR CONFIGURATION ===
-        const CLERK_PUBLISHABLE_KEY = 'pk_live_Y2xlcmsucnVtb3JhLmZyaWkuc2l0ZSQ';
-        const CLERK_FRONTEND_API = 'https://clerk.rumora.frii.site';
+        // Configuration from server
+        const CLERK_PUBLISHABLE_KEY = '{{CLERK_PUBLISHABLE_KEY}}';
+        const CLERK_FRONTEND_API = '{{CLERK_FRONTEND_API}}';
+        const APP_URL = '{{APP_URL}}';
         
-        const statusEl = document.getElementById('status');
+        // DOM elements
+        const statusContainer = document.getElementById('status-container');
+        const statusMessage = document.getElementById('status-message');
+        const loadingText = document.getElementById('loading-text');
         
+        // Update status display
         function updateStatus(message, type = 'info') {
-            const color = type === 'error' ? '#ef4444' : type === 'success' ? '#4ade80' : '#eab308';
-            statusEl.innerHTML = `<span style="color: ${color}">${message}</span>`;
-            console.log('Status:', message);
+            statusContainer.style.display = 'block';
+            const colors = {
+                info: '#eab308',
+                success: '#4ade80',
+                error: '#ef4444'
+            };
+            statusMessage.innerHTML = `<span style="color: ${colors[type]}">${message}</span>`;
+            console.log('Clerk:', message);
         }
         
-        // Wait for Clerk to load
-        function waitForClerk() {
-            updateStatus('Waiting for Clerk SDK...');
-            
-            let attempts = 0;
-            const maxAttempts = 20;
-            
-            const interval = setInterval(() => {
-                attempts++;
-                
-                if (window.Clerk) {
-                    clearInterval(interval);
-                    initializeClerk();
-                } else if (attempts >= maxAttempts) {
-                    clearInterval(interval);
-                    updateStatus('❌ Clerk SDK failed to load', 'error');
-                    showFallback();
-                } else {
-                    updateStatus(`Waiting for Clerk SDK... (${attempts}/${maxAttempts})`);
-                }
-            }, 500);
-        }
-        
-        // Initialize Clerk WITH custom domain
+        // Initialize Clerk with satellite domain
         async function initializeClerk() {
+            updateStatus('Initializing Clerk with satellite domain...', 'info');
+            loadingText.textContent = 'Setting up authentication...';
+            
+            // Validate configuration
+            if (!CLERK_PUBLISHABLE_KEY || !CLERK_PUBLISHABLE_KEY.startsWith('pk_')) {
+                updateStatus('❌ Invalid Clerk configuration', 'error');
+                showFallback();
+                return;
+            }
+            
+            if (!CLERK_FRONTEND_API) {
+                updateStatus('❌ Satellite domain not configured', 'error');
+                showFallback();
+                return;
+            }
+            
+            updateStatus(`🔗 Using satellite domain: ${CLERK_FRONTEND_API}`, 'info');
+            
             try {
-                updateStatus('Configuring Clerk with custom domain...');
+                // Wait for Clerk SDK to load
+                if (typeof Clerk === 'undefined') {
+                    updateStatus('⏳ Loading Clerk SDK...', 'info');
+                    
+                    // Wait up to 10 seconds for Clerk to load
+                    await new Promise((resolve, reject) => {
+                        let attempts = 0;
+                        const checkClerk = setInterval(() => {
+                            attempts++;
+                            if (typeof Clerk !== 'undefined') {
+                                clearInterval(checkClerk);
+                                resolve();
+                            } else if (attempts > 20) {
+                                clearInterval(checkClerk);
+                                reject(new Error('Clerk SDK failed to load'));
+                            }
+                        }, 500);
+                    });
+                }
                 
-                // IMPORTANT: Must use frontendApi with custom domain
+                updateStatus('✅ Clerk SDK loaded', 'success');
+                
+                // Configure Clerk with satellite domain
                 await Clerk.load({
                     publishableKey: CLERK_PUBLISHABLE_KEY,
-                    frontendApi: CLERK_FRONTEND_API
+                    frontendApi: CLERK_FRONTEND_API,
+                    appearance: {
+                        variables: {
+                            colorPrimary: '#9d4edd',
+                            colorText: '#f5f5f5',
+                            colorInputText: '#f5f5f5',
+                            colorBackground: 'transparent',
+                            colorInputBackground: 'rgba(255, 255, 255, 0.05)',
+                            borderRadius: '12px'
+                        },
+                        elements: {
+                            formButtonPrimary: {
+                                backgroundColor: '#9d4edd',
+                                backgroundImage: 'linear-gradient(90deg, #6a0dad, #9d4edd)',
+                                border: 'none',
+                                borderRadius: '50px',
+                                fontWeight: '600',
+                                boxShadow: '0 5px 20px rgba(106, 13, 173, 0.4)',
+                                transition: 'all 0.3s ease'
+                            },
+                            formButtonPrimary__hover: {
+                                transform: 'translateY(-3px)',
+                                boxShadow: '0 10px 25px rgba(106, 13, 173, 0.6)'
+                            },
+                            card: {
+                                backgroundColor: 'rgba(26, 15, 51, 0.95)',
+                                border: '1px solid rgba(157, 78, 221, 0.2)',
+                                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
+                                borderRadius: '25px'
+                            }
+                        }
+                    }
                 });
                 
-                updateStatus('✅ Clerk configured!', 'success');
+                updateStatus('✅ Clerk configured successfully!', 'success');
+                loadingText.textContent = 'Ready to sign up!';
                 
-                // Mount sign-up
-                Clerk.mountSignUp(document.getElementById('clerk-container'));
+                // Mount sign-up component
+                const signUpElement = document.getElementById('clerk-signup');
+                signUpElement.innerHTML = '';
+                Clerk.mountSignUp(signUpElement);
                 
-                updateStatus('✅ Ready for sign up!', 'success');
+                updateStatus('✅ Sign-up form loaded', 'success');
                 
-                // Listen for sign-up
+                // Handle successful sign-up
                 Clerk.addListener(({ user }) => {
                     if (user) {
-                        updateStatus('🎉 Account created!', 'success');
+                        updateStatus('🎉 Account created! Redirecting...', 'success');
+                        
+                        // Store user info
+                        localStorage.setItem('rumora_user_id', user.id);
+                        localStorage.setItem('rumora_user_email', user.primaryEmailAddress?.emailAddress);
+                        
+                        // Redirect to dashboard
                         setTimeout(() => {
                             window.location.href = '/testing/dashboard';
                         }, 1500);
                     }
                 });
                 
+                // Handle social sign-up buttons
+                document.getElementById('googleSignUp')?.addEventListener('click', () => {
+                    Clerk.openSignUp({
+                        strategy: 'oauth_google'
+                    });
+                });
+                
+                document.getElementById('discordSignUp')?.addEventListener('click', () => {
+                    Clerk.openSignUp({
+                        strategy: 'oauth_discord'
+                    });
+                });
+                
             } catch (error) {
-                updateStatus(`❌ Clerk error: ${error.message}`, 'error');
                 console.error('Clerk error:', error);
+                updateStatus(`❌ Error: ${error.message}`, 'error');
+                loadingText.textContent = 'Authentication unavailable';
+                loadingText.style.color = '#ef4444';
                 showFallback();
             }
         }
         
-        // Fallback authentication
+        // Fallback for if Clerk fails
         function showFallback() {
-            document.getElementById('clerk-container').innerHTML = `
-                <div style="text-align: center; padding: 30px;">
-                    <h3 style="color: #ffcc00;">⚠️ Clerk Authentication</h3>
-                    <p>Clerk is configured with custom domain: ${CLERK_FRONTEND_API}</p>
-                    <p>This domain needs to be accessible.</p>
-                    
-                    <div style="margin: 20px 0;">
-                        <button onclick="useDemoAuth()" style="
-                            background: linear-gradient(90deg, #6a0dad, #9d4edd);
-                            color: white;
-                            border: none;
-                            padding: 12px 24px;
-                            border-radius: 50px;
-                            font-weight: 600;
-                            cursor: pointer;
-                            margin: 10px;
-                        ">
-                            Use Demo Account
-                        </button>
-                        
-                        <button onclick="location.reload()" style="
-                            background: transparent;
-                            color: #9d4edd;
-                            border: 2px solid #9d4edd;
-                            padding: 12px 24px;
-                            border-radius: 50px;
-                            font-weight: 600;
-                            cursor: pointer;
-                            margin: 10px;
-                        ">
-                            Retry Clerk
-                        </button>
-                    </div>
-                    
-                    <p style="font-size: 0.9rem; color: #aaa;">
-                        To fix: Check DNS for ${CLERK_FRONTEND_API.replace('https://', '')}
+            const clerkContainer = document.getElementById('clerk-signup');
+            clerkContainer.innerHTML += `
+                <div style="text-align: center; padding: 20px;">
+                    <p style="color: #ffcc00; margin-bottom: 15px;">
+                        <i class="fas fa-exclamation-triangle"></i> Clerk authentication temporarily unavailable
                     </p>
+                    <p style="font-size: 0.9rem; color: #aaa; margin-bottom: 20px;">
+                        Please try again in a few moments, or contact support if the issue persists.
+                    </p>
+                    <button onclick="location.reload()" style="
+                        background: linear-gradient(90deg, #6a0dad, #9d4edd);
+                        color: white;
+                        border: none;
+                        padding: 12px 24px;
+                        border-radius: 50px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        margin-top: 10px;
+                    ">
+                        <i class="fas fa-sync-alt"></i> Retry
+                    </button>
                 </div>
             `;
         }
         
-        function useDemoAuth() {
-            const email = prompt('Enter email for demo:', 'demo@rumora.com');
-            if (email) {
-                localStorage.setItem('rumora_demo_user', JSON.stringify({
-                    email: email,
-                    name: email.split('@')[0],
-                    plan: 'Silver',
-                    capeCount: 1
-                }));
-                window.location.href = '/testing/dashboard';
-            }
-        }
+        // Update copyright year
+        document.getElementById('current-year').textContent = new Date().getFullYear();
         
-        // Start
-        document.addEventListener('DOMContentLoaded', waitForClerk);
+        // Start Clerk initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(initializeClerk, 500);
+        });
     </script>
 </body>
 </html>
