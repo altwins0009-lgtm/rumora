@@ -1,55 +1,71 @@
 require('dotenv').config();
 const express = require('express');
+const session = require('express-session');
+const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
-const { ClerkExpressRequireAuth, ClerkExpressWithAuth } = require('@clerk/clerk-sdk-node');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
-
-// Initialize Clerk
-const clerk = require('@clerk/clerk-sdk-node');
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Security headers
-app.use((req, res, next) => {
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('X-Frame-Options', 'DENY');
-    res.setHeader('X-XSS-Protection', '1; mode=block');
-    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-    next();
-});
+// Session middleware
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'rumora-magical-secret-key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        httpOnly: true
+    }
+}));
 
-// Clerk configuration
-const clerkConfig = {
-    publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
-    secretKey: process.env.CLERK_SECRET_KEY,
-    apiUrl: process.env.CLERK_FRONTEND_API
+// Discord OAuth configuration
+const DISCORD_CONFIG = {
+    clientId: process.env.DISCORD_CLIENT_ID,
+    clientSecret: process.env.DISCORD_CLIENT_SECRET,
+    redirectUri: process.env.DISCORD_REDIRECT_URI || `${process.env.APP_URL}/auth/discord/callback`,
+    authUrl: 'https://discord.com/api/oauth2/authorize',
+    tokenUrl: 'https://discord.com/api/oauth2/token',
+    apiUrl: 'https://discord.com/api/v10'
 };
 
-console.log('=== CLERK CONFIGURATION ===');
-console.log('Mode:', process.env.NODE_ENV);
-console.log('Publishable Key:', clerkConfig.publishableKey ? '✅ Set' : '❌ Missing');
-console.log('Secret Key:', clerkConfig.secretKey ? '✅ Set' : '❌ Missing');
-console.log('Frontend API:', clerkConfig.apiUrl);
-console.log('App URL:', process.env.APP_URL);
+// Admin users (from env or default)
+const ADMIN_IDS = process.env.ADMIN_DISCORD_IDS ? 
+    process.env.ADMIN_DISCORD_IDS.split(',').map(id => id.trim()) : [];
+
+console.log('=== DISCORD AUTH CONFIG ===');
+console.log('Client ID:', DISCORD_CONFIG.clientId ? '✅ Set' : '❌ Missing');
+console.log('Redirect URI:', DISCORD_CONFIG.redirectUri);
+console.log('Admin IDs:', ADMIN_IDS.length ? ADMIN_IDS : 'None');
 console.log('===========================');
 
-// Helper to inject Clerk config into HTML
-function injectClerkConfig(html) {
-    return html
-        .replace(/{{CLERK_PUBLISHABLE_KEY}}/g, clerkConfig.publishableKey || '')
-        .replace(/{{CLERK_FRONTEND_API}}/g, clerkConfig.apiUrl || '')
-        .replace(/{{APP_URL}}/g, process.env.APP_URL || '')
-        .replace(/{{NODE_ENV}}/g, process.env.NODE_ENV || 'development');
+// User database (in production, use a real database)
+const users = new Map(); // userId -> userData
+const sessions = new Map(); // sessionId -> userId
+
+// Middleware to check authentication
+function requireAuth(req, res, next) {
+    if (req.session.userId && users.has(req.session.userId)) {
+        req.user = users.get(req.session.userId);
+        return next();
+    }
+    res.redirect('/testing/signin');
 }
 
-// Load HTML files
+function optionalAuth(req, res, next) {
+    if (req.session.userId && users.has(req.session.userId)) {
+        req.user = users.get(req.session.userId);
+    }
+    next();
+}
+
+// Helper to load HTML files
 function loadHtml(filename) {
     try {
         return fs.readFileSync(path.join(__dirname, 'public', filename), 'utf8');
@@ -62,8 +78,19 @@ function loadHtml(filename) {
 // ========== ROUTES ==========
 
 // Public Pages
-app.get('/testing', (req, res) => {
-    res.send(injectClerkConfig(loadHtml('index.html')));
+app.get('/testing', optionalAuth, (req, res) => {
+    let html = loadHtml('index.html');
+    
+    // Inject user data if logged in
+    if (req.user) {
+        html = html.replace('{{USER_NAME}}', req.user.username || 'User');
+        html = html.replace('{{USER_AVATAR}}', req.user.avatarUrl || '');
+    } else {
+        html = html.replace('{{USER_NAME}}', 'Guest');
+        html = html.replace('{{USER_AVATAR}}', '');
+    }
+    
+    res.send(html);
 });
 
 app.get('/testing/tos', (req, res) => {
@@ -76,68 +103,200 @@ app.get('/testing/privacy', (req, res) => {
 
 // Authentication Pages
 app.get('/testing/signin', (req, res) => {
-    res.send(injectClerkConfig(loadHtml('signin.html')));
+    if (req.session.userId) {
+        return res.redirect('/testing/dashboard');
+    }
+    
+    const discordAuthUrl = `${DISCORD_CONFIG.authUrl}?` + new URLSearchParams({
+        client_id: DISCORD_CONFIG.clientId,
+        redirect_uri: DISCORD_CONFIG.redirectUri,
+        response_type: 'code',
+        scope: 'identify email',
+        prompt: 'consent'
+    }).toString();
+    
+    let html = loadHtml('signin.html');
+    html = html.replace('{{DISCORD_AUTH_URL}}', discordAuthUrl);
+    res.send(html);
 });
 
 app.get('/testing/signup', (req, res) => {
-    res.send(injectClerkConfig(loadHtml('signup.html')));
+    if (req.session.userId) {
+        return res.redirect('/testing/dashboard');
+    }
+    
+    const discordAuthUrl = `${DISCORD_CONFIG.authUrl}?` + new URLSearchParams({
+        client_id: DISCORD_CONFIG.clientId,
+        redirect_uri: DISCORD_CONFIG.redirectUri,
+        response_type: 'code',
+        scope: 'identify email',
+        prompt: 'consent'
+    }).toString();
+    
+    let html = loadHtml('signup.html');
+    html = html.replace('{{DISCORD_AUTH_URL}}', discordAuthUrl);
+    res.send(html);
+});
+
+// Discord OAuth Flow
+app.get('/auth/discord', (req, res) => {
+    const discordAuthUrl = `${DISCORD_CONFIG.authUrl}?` + new URLSearchParams({
+        client_id: DISCORD_CONFIG.clientId,
+        redirect_uri: DISCORD_CONFIG.redirectUri,
+        response_type: 'code',
+        scope: 'identify email',
+        prompt: 'consent'
+    }).toString();
+    
+    res.redirect(discordAuthUrl);
+});
+
+app.get('/auth/discord/callback', async (req, res) => {
+    try {
+        const { code } = req.query;
+        
+        if (!code) {
+            throw new Error('No authorization code provided');
+        }
+        
+        // Exchange code for access token
+        const tokenResponse = await axios.post(DISCORD_CONFIG.tokenUrl, new URLSearchParams({
+            client_id: DISCORD_CONFIG.clientId,
+            client_secret: DISCORD_CONFIG.clientSecret,
+            grant_type: 'authorization_code',
+            code: code,
+            redirect_uri: DISCORD_CONFIG.redirectUri
+        }), {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+        
+        const { access_token, token_type } = tokenResponse.data;
+        
+        // Get user info from Discord
+        const userResponse = await axios.get(`${DISCORD_CONFIG.apiUrl}/users/@me`, {
+            headers: {
+                Authorization: `${token_type} ${access_token}`
+            }
+        });
+        
+        const discordUser = userResponse.data;
+        
+        // Create or update user in our database
+        const userId = discordUser.id;
+        const userData = {
+            id: userId,
+            discordId: userId,
+            username: discordUser.username,
+            discriminator: discordUser.discriminator,
+            globalName: discordUser.global_name,
+            avatar: discordUser.avatar,
+            avatarUrl: discordUser.avatar ? 
+                `https://cdn.discordapp.com/avatars/${userId}/${discordUser.avatar}.png` :
+                `https://cdn.discordapp.com/embed/avatars/${discordUser.discriminator % 5}.png`,
+            email: discordUser.email,
+            verified: discordUser.verified,
+            locale: discordUser.locale,
+            isAdmin: ADMIN_IDS.includes(userId),
+            plan: 'Silver', // Default plan
+            capeCount: 1, // Free cape
+            freeCape: true,
+            trialEnds: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7-day trial
+            joinDate: new Date().toISOString(),
+            lastLogin: new Date().toISOString()
+        };
+        
+        // Store user
+        users.set(userId, userData);
+        
+        // Create session
+        req.session.userId = userId;
+        req.session.save();
+        
+        console.log(`✅ User logged in: ${discordUser.username}#${discordUser.discriminator} (${userId})`);
+        
+        // Redirect to dashboard
+        res.redirect('/testing/dashboard');
+        
+    } catch (error) {
+        console.error('Discord OAuth error:', error.response?.data || error.message);
+        res.redirect('/testing/signin?error=auth_failed');
+    }
+});
+
+// Logout
+app.get('/auth/logout', (req, res) => {
+    if (req.session.userId) {
+        console.log(`👋 User logged out: ${req.session.userId}`);
+    }
+    
+    req.session.destroy();
+    res.redirect('/testing');
 });
 
 // Protected Dashboard
-app.get('/testing/dashboard', ClerkExpressRequireAuth(), async (req, res) => {
-    try {
-        const user = await clerk.users.getUser(req.auth.userId);
-        
-        let html = loadHtml('dashboard.html');
-        
-        // Inject user data
-        html = html.replace(/{{USER_ID}}/g, user.id);
-        html = html.replace(/{{USER_EMAIL}}/g, user.primaryEmailAddress?.emailAddress || '');
-        html = html.replace(/{{USER_NAME}}/g, user.firstName || user.username || 'User');
-        html = html.replace(/{{USER_IMAGE}}/g, user.imageUrl || '');
-        
-        // Inject Clerk config
-        html = injectClerkConfig(html);
-        
-        res.send(html);
-    } catch (error) {
-        console.error('Dashboard error:', error);
-        res.redirect('/testing/signin');
-    }
+app.get('/testing/dashboard', requireAuth, (req, res) => {
+    let html = loadHtml('dashboard.html');
+    
+    // Inject user data
+    const user = req.user;
+    html = html.replace(/{{USER_ID}}/g, user.id);
+    html = html.replace(/{{USER_NAME}}/g, user.globalName || user.username);
+    html = html.replace(/{{USERNAME}}/g, user.username);
+    html = html.replace(/{{DISCRIMINATOR}}/g, user.discriminator);
+    html = html.replace(/{{USER_AVATAR}}/g, user.avatarUrl);
+    html = html.replace(/{{USER_EMAIL}}/g, user.email || 'Not provided');
+    html = html.replace(/{{USER_PLAN}}/g, user.plan);
+    html = html.replace(/{{CAPE_COUNT}}/g, user.capeCount);
+    html = html.replace(/{{FREE_CAPE}}/g, user.freeCape ? 'Yes' : 'No');
+    html = html.replace(/{{TRIAL_ENDS}}/g, new Date(user.trialEnds).toLocaleDateString());
+    html = html.replace(/{{JOIN_DATE}}/g, new Date(user.joinDate).toLocaleDateString());
+    html = html.replace(/{{IS_ADMIN}}/g, user.isAdmin ? 'Yes' : 'No');
+    
+    res.send(html);
 });
 
 // API Endpoints
-app.get('/api/user/profile', ClerkExpressWithAuth(), async (req, res) => {
-    try {
-        const user = await clerk.users.getUser(req.auth.userId);
-        res.json({
-            id: user.id,
-            email: user.primaryEmailAddress?.emailAddress,
-            username: user.username,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            imageUrl: user.imageUrl,
-            createdAt: user.createdAt,
-            plan: 'Silver', // This would come from your database
-            capeCount: 3,
-            joinDate: new Date(user.createdAt).toISOString().split('T')[0]
-        });
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch profile' });
-    }
+app.get('/api/user/profile', requireAuth, (req, res) => {
+    res.json(req.user);
 });
 
-// Clerk webhook for user events
-app.post('/api/clerk/webhook', express.raw({ type: 'application/json' }), (req, res) => {
-    const svixId = req.headers['svix-id'];
-    const svixTimestamp = req.headers['svix-timestamp'];
-    const svixSignature = req.headers['svix-signature'];
+app.get('/api/user/capes', requireAuth, (req, res) => {
+    // Mock cape data
+    const capes = [
+        {
+            id: 'cape_1',
+            name: 'Starter Magical Cape',
+            description: 'Your free magical cape for joining Rumora',
+            image: 'https://via.placeholder.com/200x300/9d4edd/ffffff?text=Magic+Cape',
+            obtained: req.user.joinDate,
+            isEquipped: true
+        }
+    ];
     
-    console.log('📥 Clerk webhook received:', svixId);
+    res.json({ capes });
+});
+
+app.post('/api/user/claim-cape', requireAuth, (req, res) => {
+    const user = req.user;
     
-    // Verify webhook signature in production
-    // For now, just acknowledge
-    res.json({ received: true });
+    if (user.freeCape) {
+        user.capeCount += 1;
+        user.freeCape = false;
+        users.set(user.id, user);
+        
+        res.json({
+            success: true,
+            message: '🎉 Magical cape claimed!',
+            capeCount: user.capeCount
+        });
+    } else {
+        res.status(400).json({
+            success: false,
+            message: 'You have already claimed your free cape'
+        });
+    }
 });
 
 // Health check
@@ -145,23 +304,13 @@ app.get('/health', (req, res) => {
     res.json({
         status: 'healthy',
         service: 'rumora',
+        users: users.size,
         environment: process.env.NODE_ENV,
-        clerk: {
-            configured: !!clerkConfig.publishableKey,
-            mode: 'satellite',
-            frontendApi: clerkConfig.apiUrl
+        discord: {
+            clientId: DISCORD_CONFIG.clientId ? '✅ Configured' : '❌ Missing',
+            redirectUri: DISCORD_CONFIG.redirectUri
         },
         timestamp: new Date().toISOString()
-    });
-});
-
-// Clerk config endpoint (for debugging)
-app.get('/api/clerk/config', (req, res) => {
-    res.json({
-        publishableKey: clerkConfig.publishableKey ? clerkConfig.publishableKey.substring(0, 20) + '...' : null,
-        frontendApi: clerkConfig.apiUrl,
-        appUrl: process.env.APP_URL,
-        environment: process.env.NODE_ENV
     });
 });
 
@@ -172,41 +321,13 @@ app.get('/', (req, res) => {
 
 // 404 handler
 app.use((req, res) => {
-    res.status(404).send(`
+    res.status(404).send(loadHtml('404.html') || `
         <!DOCTYPE html>
         <html>
-        <head>
-            <title>404 - Rumora</title>
-            <style>
-                body { background: #0f0b1f; color: white; font-family: 'Montserrat', sans-serif; 
-                       display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; text-align: center; }
-                .container { padding: 3rem; max-width: 600px; }
-                h1 { font-size: 5rem; color: #9d4edd; margin: 0; }
-                p { font-size: 1.2rem; margin: 2rem 0; color: #cccccc; }
-                .magic-button { display: inline-block; background: linear-gradient(90deg, #6a0dad, #9d4edd); 
-                               color: white; padding: 15px 30px; border-radius: 50px; text-decoration: none; 
-                               font-weight: 600; transition: all 0.3s; }
-                .magic-button:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(106, 13, 173, 0.6); }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>404</h1>
-                <p>The magical page you're looking for has vanished!</p>
-                <a href="/testing" class="magic-button">Back to Rumora</a>
-            </div>
-        </body>
+        <head><title>404 - Rumora</title><style>body{background:#0f0b1f;color:white;font-family:sans-serif;padding:40px;text-align:center;}</style></head>
+        <body><h1>404 - Magical Page Not Found</h1><p><a href="/testing" style="color:#9d4edd;">Return to Rumora</a></p></body>
         </html>
     `);
-});
-
-// Error handler
-app.use((err, req, res, next) => {
-    console.error('Server error:', err);
-    res.status(500).json({ 
-        error: 'Something went wrong',
-        message: process.env.NODE_ENV === 'development' ? err.message : undefined
-    });
 });
 
 // Start server
@@ -214,21 +335,28 @@ app.listen(PORT, () => {
     console.log(`
     ╔══════════════════════════════════════════════════════════════════════════╗
     ║                                                                          ║
-    ║   ✨ RUMORA - PRODUCTION MODE ✨                                         ║
-    ║   🔗 Satellite Domains Configured                                        ║
+    ║   ✨ RUMORA - DISCORD AUTH SYSTEM ✨                                     ║
     ║                                                                          ║
     ╠══════════════════════════════════════════════════════════════════════════╣
     ║                                                                          ║
     ║   🌐 Main Site:     ${process.env.APP_URL}/testing                      ║
-    ║   🔐 Clerk Domain:  ${clerkConfig.apiUrl}                               ║
-    ║   📝 Sign Up:       ${process.env.APP_URL}/testing/signup                ║
     ║   🔐 Sign In:       ${process.env.APP_URL}/testing/signin                ║
+    ║   📝 Sign Up:       ${process.env.APP_URL}/testing/signup                ║
     ║   📊 Dashboard:     ${process.env.APP_URL}/testing/dashboard            ║
     ║   📈 Health:        ${process.env.APP_URL}/health                       ║
+    ║   🎮 Discord Auth:  ${process.env.APP_URL}/auth/discord                  ║
     ║                                                                          ║
     ║   🚀 Server running on port ${PORT}                                      ║
     ║   📡 Environment: ${process.env.NODE_ENV}                                ║
     ║                                                                          ║
     ╚══════════════════════════════════════════════════════════════════════════╝
     `);
+    
+    if (!DISCORD_CONFIG.clientId || !DISCORD_CONFIG.clientSecret) {
+        console.log('\n⚠️  WARNING: Discord OAuth not configured!');
+        console.log('👉 Create Discord application: https://discord.com/developers/applications');
+        console.log('👉 Add to .env:');
+        console.log('   DISCORD_CLIENT_ID=your_client_id_here');
+        console.log('   DISCORD_CLIENT_SECRET=your_client_secret_here\n');
+    }
 });
